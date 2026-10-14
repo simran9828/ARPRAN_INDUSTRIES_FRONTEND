@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { COMPANY_INFO } from '../data/stoneData';
 import CATALOG_DATA from '../data/catalog.json';
+import { getApiUrl, safeParseResponse } from '../utils/api';
 
 const CMSContext = createContext(null);
 
@@ -92,11 +93,10 @@ export function CMSProvider({ children }) {
 
   const fetchCMSData = useCallback(async () => {
     try {
-      const res = await fetch('/api/public/all');
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success && json.data) {
-          const fetched = json.data;
+      const res = await fetch(getApiUrl('/api/public/all'));
+      const parsed = await safeParseResponse(res);
+      if (parsed.ok && parsed.data?.success && parsed.data?.data) {
+        const fetched = parsed.data.data;
 
           // Rebuild catalogMap by category name for 100% backward compatibility
           const newCatalogMap = { ...CATALOG_DATA };
@@ -161,7 +161,6 @@ export function CMSProvider({ children }) {
             footerLinks: fetched.footerLinks || []
           });
         }
-      }
     } catch (err) {
       console.warn('CMS public API unavailable, using local cached store:', err.message);
     } finally {

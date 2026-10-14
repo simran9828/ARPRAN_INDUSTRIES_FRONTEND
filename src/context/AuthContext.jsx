@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { getApiUrl, safeParseResponse } from '../utils/api';
 
 const AuthContext = createContext(null);
 
@@ -28,7 +29,7 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      const res = await fetch(url, { ...options, headers, body });
+      const res = await fetch(getApiUrl(url), { ...options, headers, body });
       if (res.status === 401) {
         // Token expired or invalid: clear session
         localStorage.removeItem('arpran_auth_token');
@@ -56,28 +57,24 @@ export function AuthProvider({ children }) {
       try {
         // 1. Try user authentication endpoint
         const resUser = await authFetch('/api/auth/me');
-        if (resUser.ok) {
-          const jsonUser = await resUser.json();
-          if (jsonUser.success && jsonUser.user) {
-            setUser(jsonUser.user);
-            if (jsonUser.user.role === 'admin' || jsonUser.user.role === 'superadmin') {
-              setAdmin(jsonUser.user);
-            }
-            setIsLoading(false);
-            return;
+        const parsedUser = await safeParseResponse(resUser);
+        if (parsedUser.ok && parsedUser.data?.success && parsedUser.data?.user) {
+          setUser(parsedUser.data.user);
+          if (parsedUser.data.user.role === 'admin' || parsedUser.data.user.role === 'superadmin') {
+            setAdmin(parsedUser.data.user);
           }
+          setIsLoading(false);
+          return;
         }
 
         // 2. Fallback to admin authentication endpoint for legacy admin sessions
         const resAdmin = await authFetch('/api/admin/me');
-        if (resAdmin.ok) {
-          const jsonAdmin = await resAdmin.json();
-          if (jsonAdmin.success && jsonAdmin.admin) {
-            setAdmin(jsonAdmin.admin);
-            setUser({ ...jsonAdmin.admin, role: jsonAdmin.admin.role || 'admin' });
-            setIsLoading(false);
-            return;
-          }
+        const parsedAdmin = await safeParseResponse(resAdmin);
+        if (parsedAdmin.ok && parsedAdmin.data?.success && parsedAdmin.data?.admin) {
+          setAdmin(parsedAdmin.data.admin);
+          setUser({ ...parsedAdmin.data.admin, role: parsedAdmin.data.admin.role || 'admin' });
+          setIsLoading(false);
+          return;
         }
 
         // If both failed, invalidate token
@@ -99,16 +96,17 @@ export function AuthProvider({ children }) {
   // User Signup handler
   const signup = async (email, password, confirmPassword, name = '') => {
     try {
-      const res = await fetch('/api/auth/signup', {
+      const res = await fetch(getApiUrl('/api/auth/signup'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, confirmPassword, name })
       });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to create account');
+      const parsed = await safeParseResponse(res);
+      if (!parsed.ok || !parsed.data?.success) {
+        throw new Error(parsed.error || 'Failed to create account');
       }
 
+      const data = parsed.data;
       localStorage.setItem('arpran_auth_token', data.token);
       localStorage.setItem('arpran_admin_jwt', data.token);
       setToken(data.token);
@@ -125,45 +123,57 @@ export function AuthProvider({ children }) {
   // User & Admin Login handler
   const login = async (email, password) => {
     try {
-      // 1. Try main user login endpoint first
-      const res = await fetch('/api/auth/login', {
+      // 1. Try dedicated Admin login endpoint first
+      const adminRes = await fetch(getApiUrl('/api/admin/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
-      const data = await res.json();
+      const parsedAdmin = await safeParseResponse(adminRes);
 
-      if (res.ok && data.success) {
-        localStorage.setItem('arpran_auth_token', data.token);
-        localStorage.setItem('arpran_admin_jwt', data.token);
-        setToken(data.token);
-        setUser(data.user);
-        if (data.user.role === 'admin' || data.user.role === 'superadmin') {
-          setAdmin(data.user);
-        }
-        return { success: true, message: data.message, user: data.user };
-      }
-
-      // 2. Fallback to /api/admin/login if it was an admin attempt with special credentials
-      const adminRes = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      const adminData = await adminRes.json();
-
-      if (adminRes.ok && adminData.success) {
+      if (parsedAdmin.ok && parsedAdmin.data?.success && parsedAdmin.data?.admin) {
+        const adminData = parsedAdmin.data;
         localStorage.setItem('arpran_auth_token', adminData.token);
         localStorage.setItem('arpran_admin_jwt', adminData.token);
         setToken(adminData.token);
         setAdmin(adminData.admin);
         setUser({ ...adminData.admin, role: adminData.admin.role || 'admin' });
-        return { success: true, user: adminData.admin };
+        return { success: true, user: adminData.admin, message: adminData.message };
       }
 
-      throw new Error(data.error || adminData.error || 'Invalid email or password');
+      // 2. Try standard User login endpoint
+      const userRes = await fetch(getApiUrl('/api/auth/login'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const parsedUser = await safeParseResponse(userRes);
+
+      if (parsedUser.ok && parsedUser.data?.success && parsedUser.data?.user) {
+        const userData = parsedUser.data;
+        localStorage.setItem('arpran_auth_token', userData.token);
+        localStorage.setItem('arpran_admin_jwt', userData.token);
+        setToken(userData.token);
+        setUser(userData.user);
+        if (userData.user.role === 'admin' || userData.user.role === 'superadmin') {
+          setAdmin(userData.user);
+        }
+        return { success: true, message: userData.message, user: userData.user };
+      }
+
+      // If both endpoints failed, extract the most descriptive error message
+      const errorMessage =
+        parsedAdmin.error ||
+        parsedUser.error ||
+        'Authentication failed. Please verify your email and password.';
+
+      return { success: false, error: errorMessage };
     } catch (err) {
-      return { success: false, error: err.message };
+      console.error('Login request network error:', err);
+      return {
+        success: false,
+        error: `Network error: ${err.message}. Please check if the backend service is running.`
+      };
     }
   };
 
@@ -171,7 +181,7 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       if (token) {
-        await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+        await fetch(getApiUrl('/api/auth/logout'), { method: 'POST' }).catch(() => {});
         await authFetch('/api/admin/logout', { method: 'POST' }).catch(() => {});
       }
     } catch (e) {
