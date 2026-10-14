@@ -1,0 +1,257 @@
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+
+const AuthContext = createContext(null);
+
+export function AuthProvider({ children }) {
+  const [token, setToken] = useState(() => {
+    return localStorage.getItem('arpran_auth_token') || localStorage.getItem('arpran_admin_jwt') || null;
+  });
+  const [user, setUser] = useState(null);
+  const [admin, setAdmin] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Authenticated fetch helper
+  const authFetch = useCallback(async (url, options = {}) => {
+    const currentToken = localStorage.getItem('arpran_auth_token') || localStorage.getItem('arpran_admin_jwt');
+    const headers = {
+      ...(options.headers || {})
+    };
+
+    if (currentToken) {
+      headers['Authorization'] = `Bearer ${currentToken}`;
+    }
+
+    let body = options.body;
+    if (body && !(body instanceof FormData) && typeof body === 'object') {
+      headers['Content-Type'] = 'application/json';
+      body = JSON.stringify(body);
+    }
+
+    try {
+      const res = await fetch(url, { ...options, headers, body });
+      if (res.status === 401) {
+        // Token expired or invalid: clear session
+        localStorage.removeItem('arpran_auth_token');
+        localStorage.removeItem('arpran_admin_jwt');
+        setToken(null);
+        setUser(null);
+        setAdmin(null);
+      }
+      return res;
+    } catch (err) {
+      console.error('API request network error:', err);
+      throw err;
+    }
+  }, []);
+
+  // Validate existing token on mount
+  useEffect(() => {
+    async function checkAuth() {
+      const activeToken = localStorage.getItem('arpran_auth_token') || localStorage.getItem('arpran_admin_jwt');
+      if (!activeToken) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // 1. Try user authentication endpoint
+        const resUser = await authFetch('/api/auth/me');
+        if (resUser.ok) {
+          const jsonUser = await resUser.json();
+          if (jsonUser.success && jsonUser.user) {
+            setUser(jsonUser.user);
+            if (jsonUser.user.role === 'admin' || jsonUser.user.role === 'superadmin') {
+              setAdmin(jsonUser.user);
+            }
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        // 2. Fallback to admin authentication endpoint for legacy admin sessions
+        const resAdmin = await authFetch('/api/admin/me');
+        if (resAdmin.ok) {
+          const jsonAdmin = await resAdmin.json();
+          if (jsonAdmin.success && jsonAdmin.admin) {
+            setAdmin(jsonAdmin.admin);
+            setUser({ ...jsonAdmin.admin, role: jsonAdmin.admin.role || 'admin' });
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        // If both failed, invalidate token
+        localStorage.removeItem('arpran_auth_token');
+        localStorage.removeItem('arpran_admin_jwt');
+        setToken(null);
+        setUser(null);
+        setAdmin(null);
+      } catch (err) {
+        console.warn('Auth check connection error:', err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    checkAuth();
+  }, [token, authFetch]);
+
+  // User Signup handler
+  const signup = async (email, password, confirmPassword, name = '') => {
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, confirmPassword, name })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to create account');
+      }
+
+      localStorage.setItem('arpran_auth_token', data.token);
+      localStorage.setItem('arpran_admin_jwt', data.token);
+      setToken(data.token);
+      setUser(data.user);
+      if (data.user.role === 'admin' || data.user.role === 'superadmin') {
+        setAdmin(data.user);
+      }
+      return { success: true, message: data.message, user: data.user };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  };
+
+  // User & Admin Login handler
+  const login = async (email, password) => {
+    try {
+      // 1. Try main user login endpoint first
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        localStorage.setItem('arpran_auth_token', data.token);
+        localStorage.setItem('arpran_admin_jwt', data.token);
+        setToken(data.token);
+        setUser(data.user);
+        if (data.user.role === 'admin' || data.user.role === 'superadmin') {
+          setAdmin(data.user);
+        }
+        return { success: true, message: data.message, user: data.user };
+      }
+
+      // 2. Fallback to /api/admin/login if it was an admin attempt with special credentials
+      const adminRes = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const adminData = await adminRes.json();
+
+      if (adminRes.ok && adminData.success) {
+        localStorage.setItem('arpran_auth_token', adminData.token);
+        localStorage.setItem('arpran_admin_jwt', adminData.token);
+        setToken(adminData.token);
+        setAdmin(adminData.admin);
+        setUser({ ...adminData.admin, role: adminData.admin.role || 'admin' });
+        return { success: true, user: adminData.admin };
+      }
+
+      throw new Error(data.error || adminData.error || 'Invalid email or password');
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  };
+
+  // Logout handler
+  const logout = async () => {
+    try {
+      if (token) {
+        await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+        await authFetch('/api/admin/logout', { method: 'POST' }).catch(() => {});
+      }
+    } catch (e) {
+      // ignore
+    } finally {
+      localStorage.removeItem('arpran_auth_token');
+      localStorage.removeItem('arpran_admin_jwt');
+      setToken(null);
+      setUser(null);
+      setAdmin(null);
+    }
+  };
+
+  // Change password handler
+  const changePassword = async (newPassword, oldPassword = '') => {
+    try {
+      const res = await authFetch('/api/admin/change-password', {
+        method: 'POST',
+        body: { newPassword, oldPassword }
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to update password');
+      }
+      return { success: true, message: data.message };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  };
+
+  // Update admin email handler
+  const updateEmail = async (newEmail, name = '') => {
+    try {
+      const res = await authFetch('/api/admin/update-email', {
+        method: 'POST',
+        body: { newEmail, name }
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to update email');
+      }
+      if (data.admin) {
+        setAdmin(data.admin);
+        setUser(data.admin);
+      }
+      return { success: true, message: data.message, admin: data.admin };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  };
+
+  const isAuthenticated = Boolean(user || admin || token);
+  const isAdmin = Boolean(admin || (user && (user.role === 'admin' || user.role === 'superadmin')));
+
+  return (
+    <AuthContext.Provider
+      value={{
+        token,
+        user,
+        admin,
+        isAuthenticated,
+        isAdmin,
+        isLoading,
+        signup,
+        login,
+        logout,
+        changePassword,
+        updateEmail,
+        authFetch
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}
