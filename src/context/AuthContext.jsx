@@ -93,13 +93,29 @@ export function AuthProvider({ children }) {
     checkAuth();
   }, [token, authFetch]);
 
-  // User Signup handler
-  const signup = async (email, password, confirmPassword, name = '') => {
+  // User & Admin Signup handler
+  const signup = async (signupData, p2, p3, p4, p5, p6, p7, p8) => {
     try {
+      let payload;
+      if (typeof signupData === 'object' && signupData !== null) {
+        payload = signupData;
+      } else {
+        payload = {
+          email: signupData,
+          password: p2,
+          confirmPassword: p3,
+          name: p4 || '',
+          phone: p5 || '',
+          company: p6 || '',
+          role: p7 || 'user',
+          adminSecret: p8 || ''
+        };
+      }
+
       const res = await fetch(getApiUrl('/api/auth/signup'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, confirmPassword, name })
+        body: JSON.stringify(payload)
       });
       const parsed = await safeParseResponse(res);
       if (!parsed.ok || !parsed.data?.success) {
@@ -114,7 +130,7 @@ export function AuthProvider({ children }) {
       if (data.user.role === 'admin' || data.user.role === 'superadmin') {
         setAdmin(data.user);
       }
-      return { success: true, message: data.message, user: data.user };
+      return { success: true, message: data.message, user: data.user, token: data.token };
     } catch (err) {
       return { success: false, error: err.message };
     }

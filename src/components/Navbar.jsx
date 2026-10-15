@@ -138,8 +138,8 @@ export default function Navbar() {
                             to={`/products/${cat.slug}`}
                             onClick={() => setIsProductsDropdownOpen(false)}
                             className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all duration-150 group border ${isRough
-                                ? 'bg-gradient-to-r from-amber-500/25 to-slate-900 border-amber-400/60 text-amber-200 hover:border-amber-300 hover:bg-amber-500/35'
-                                : 'bg-[#101F3B] hover:bg-[#182F57] border-slate-700/60 hover:border-amber-400/50 text-white hover:text-amber-300 shadow-xs'
+                              ? 'bg-gradient-to-r from-amber-500/25 to-slate-900 border-amber-400/60 text-amber-200 hover:border-amber-300 hover:bg-amber-500/35'
+                              : 'bg-[#101F3B] hover:bg-[#182F57] border-slate-700/60 hover:border-amber-400/50 text-white hover:text-amber-300 shadow-xs'
                               }`}
                           >
                             <div className="flex items-center gap-2 min-w-0">
@@ -179,6 +179,7 @@ export default function Navbar() {
                   </div>
                 )}
               </div>
+
 
 
               <NavLink to="/blog" className={navLinkClass}>
@@ -268,8 +269,8 @@ export default function Navbar() {
                       to={`/products/${cat.slug}`}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={`block py-1.5 px-2 rounded transition truncate flex items-center justify-between ${isRough
-                          ? 'bg-amber-500/20 text-amber-200 font-bold border border-amber-400/40'
-                          : 'hover:text-amber-300 hover:bg-slate-800/60'
+                        ? 'bg-amber-500/20 text-amber-200 font-bold border border-amber-400/40'
+                        : 'hover:text-amber-300 hover:bg-slate-800/60'
                         }`}
                     >
                       <span className="truncate">• {cat.name}</span>
@@ -279,6 +280,13 @@ export default function Navbar() {
               </div>
             </div>
 
+            <NavLink
+              to="/finishes"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={({ isActive }) => `block py-2 text-sm font-semibold ${isActive ? 'text-amber-400 font-bold' : 'text-white'}`}
+            >
+              Stone Finishes
+            </NavLink>
 
             <NavLink
               to="/blog"

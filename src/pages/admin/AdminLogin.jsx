@@ -168,14 +168,17 @@ export default function AdminLogin() {
 
           </form>
 
-          {/* Footer Back link */}
-          <div className="mt-6 pt-5 border-t border-slate-100 text-center">
-            <Link
-              to="/"
-              className="text-xs text-slate-500 hover:text-[#0A4E9B] transition inline-flex items-center gap-1 font-semibold"
-            >
-              <span>← Return to Public Website</span>
-            </Link>
+          {/* Footer Back & Signup links */}
+          <div className="mt-6 pt-5 border-t border-slate-100 text-center space-y-2">
+          
+            <p className="text-[11px] text-slate-400">
+              <Link
+                to="/"
+                className="text-slate-500 hover:text-[#0A4E9B] transition inline-flex items-center gap-1 font-semibold"
+              >
+                <span>← Return to Public Website</span>
+              </Link>
+            </p>
           </div>
 
         </div>
