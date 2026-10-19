@@ -20,7 +20,13 @@ const COLOR_SHADES = [
 ];
 
 export default function ProductsPage({ onOpenProduct }) {
-  const { catalogMap } = useCMS();
+  const { catalogMap, pages } = useCMS();
+  const productsPageData = pages?.products;
+  const pageContent = productsPageData?.content || {};
+  const headerBadge = pageContent.badge || "Architectural Stone Catalog";
+  const headerTitle = productsPageData?.h1 || pageContent.h1 || "Comprehensive Architectural Stone Collections";
+  const headerSubtitle = productsPageData?.tagline || pageContent.tagline || "Over 250 hand-selected stone varieties spanning 12 distinct categories. Calibrated gangsaw slabs, dimensional tiles, and ultra-thin flexible veneers processed directly in Rajasthan.";
+
   const [searchParams, setSearchParams] = useSearchParams();
   const currentCatalog = catalogMap || CATALOG_DATA;
   const categoriesList = useMemo(() => {
@@ -121,13 +127,13 @@ export default function ProductsPage({ onOpenProduct }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-400 text-xs font-bold tracking-[0.2em] uppercase mb-3 shadow-2xs">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Architectural Stone Catalog</span>
+            <span>{headerBadge}</span>
           </div>
           <h1 className="text-2xl sm:text-4xl lg:text-[44px] font-serif font-normal text-white tracking-tight leading-[1.2]">
-            Comprehensive Architectural Stone Collections
+            {headerTitle}
           </h1>
           <p className="mt-2.5 text-sm sm:text-base text-slate-300 max-w-3xl font-normal leading-relaxed">
-            Over 250 hand-selected stone varieties spanning 12 distinct categories. Calibrated gangsaw slabs, dimensional tiles, and ultra-thin flexible veneers processed directly in Rajasthan.
+            {headerSubtitle}
           </p>
         </div>
       </section>

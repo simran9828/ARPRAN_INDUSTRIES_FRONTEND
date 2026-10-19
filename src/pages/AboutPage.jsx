@@ -52,7 +52,7 @@ export default function AboutPage() {
     }
   ];
 
-  const WORK_PROCESS_STEPS = [
+  const DEFAULT_WORK_PROCESS = [
     {
       step: "01",
       title: "1. Stone Selection",
@@ -135,9 +135,6 @@ export default function AboutPage() {
       image: "/images/process/10-loading.jpg",
       gridClass: "lg:col-start-3 lg:row-start-4",
     },
-  ];
-
-  const WORK_PROCESS_BOTTOM = [
     {
       step: "11",
       title: "11. Loading & Delivery",
@@ -153,6 +150,30 @@ export default function AboutPage() {
       image: "/images/process/12-completed.jpg",
     },
   ];
+
+  const rawProcessList = Array.isArray(about?.content?.workProcess) && about.content.workProcess.length > 0
+    ? about.content.workProcess
+    : DEFAULT_WORK_PROCESS;
+
+  const defaultGridClasses = [
+    "lg:col-start-1 lg:row-start-1",
+    "lg:col-start-2 lg:row-start-1",
+    "lg:col-start-1 lg:row-start-2",
+    "lg:col-start-2 lg:row-start-2",
+    "lg:col-start-3 lg:row-start-1 lg:row-span-2",
+    "lg:col-start-1 lg:row-start-3 lg:row-span-2",
+    "lg:col-start-2 lg:row-start-3",
+    "lg:col-start-3 lg:row-start-3",
+    "lg:col-start-2 lg:row-start-4",
+    "lg:col-start-3 lg:row-start-4",
+  ];
+
+  const WORK_PROCESS_STEPS = rawProcessList.slice(0, 10).map((step, idx) => ({
+    ...step,
+    gridClass: step.gridClass || defaultGridClasses[idx] || ""
+  }));
+
+  const WORK_PROCESS_BOTTOM = rawProcessList.slice(10);
 
   const hubs = about?.content?.hubs || {
     badge: "International Reach",
@@ -192,7 +213,7 @@ export default function AboutPage() {
 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <h1 className="text-3xl sm:text-4xl lg:text-[44px] font-serif font-normal text-white tracking-tight leading-[1.2] mb-4">
-            Our Mission
+            {about?.content?.mission?.heading || "Our Mission"}
           </h1>
           <p className="text-sm sm:text-base lg:text-lg text-slate-300 max-w-4xl mx-auto leading-relaxed font-light italic">
             "{about?.content?.mission?.statement || "To be a leading supplier and exporter of natural stone by consistently delivering high-quality materials, innovative stone solutions, and reliable export services. We are dedicated to creating lasting value for architects, builders, landscapers, and homeowners worldwide through integrity, precision, and excellence in natural stone processing."}"
@@ -247,7 +268,7 @@ export default function AboutPage() {
 
           <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
             <span className="text-xs font-bold uppercase tracking-widest text-[#0A4E9B]">
-              Quality Standards
+              {about?.content?.pillars_badge || "Quality Standards"}
             </span>
             <h2 className="text-3xl sm:text-4xl font-serif font-bold text-slate-900 mt-2">
               {about?.content?.pillars_heading || "Our 4 Quality Standards"}
@@ -285,14 +306,14 @@ export default function AboutPage() {
           {/* Header */}
           <div className="text-center max-w-2xl mx-auto mb-6 sm:mb-8">
             <span className="text-[11px] font-bold uppercase tracking-widest text-[#0A4E9B] bg-blue-50 px-3 py-1 rounded-full inline-block mb-2 border border-blue-100">
-              Quarry to Architecture Workflow
+              {about?.content?.work_process_badge || "Quarry to Architecture Workflow"}
             </span>
             <h2 className="text-2xl sm:text-3xl font-serif font-bold text-slate-900">
-              Our Work Process
+              {about?.content?.work_process_heading || "Our Work Process"}
             </h2>
             <div className="w-12 h-0.5 bg-gradient-to-r from-[#0A4E9B] via-[#C29B38] to-[#0A4E9B] mx-auto mt-2 rounded-full" />
             <p className="text-xs sm:text-sm text-slate-600 mt-2.5 leading-relaxed">
-              Every slab, tile, and bespoke architectural element moves through our rigorous 12-stage manufacturing cycle — ensuring certified dimensional tolerance and seaworthy export dispatch.
+              {about?.content?.work_process_description || "Every slab, tile, and bespoke architectural element moves through our rigorous 12-stage manufacturing cycle — ensuring certified dimensional tolerance and seaworthy export dispatch."}
             </p>
           </div>
 

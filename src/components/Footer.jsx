@@ -72,7 +72,7 @@ export default function Footer() {
             <ArpranLogo light={true} className="h-9 sm:h-11" />
           </Link>
           <p className="text-[10px] sm:text-[11px] tracking-[0.25em] text-amber-400 uppercase font-semibold">
-            Architectural Natural Stones & Global Container Exports
+            {settings?.subtagline || settings?.footer_tagline || "Architectural Natural Stones & Global Container Exports"}
           </p>
         </div>
 
@@ -267,10 +267,10 @@ export default function Footer() {
         {/* 6. BOTTOM DIVIDER & COPYRIGHT BAR */}
         <div className="pt-4 border-t border-slate-800/80 text-center text-xs text-slate-400 space-y-1">
           <p>
-            © {new Date().getFullYear()} · Copyright by <strong className="text-white font-semibold">{siteName}</strong> · All Rights Reserved
+            {settings?.copyright_text || `© ${new Date().getFullYear()} · Copyright by ${siteName} · All Rights Reserved`}
           </p>
           <p className="text-[10px] text-amber-400/90 font-medium tracking-wider uppercase">
-            "Built by Nature. Perfected by Arpran. Delivered Worldwide."
+            "{settings?.motto || "Built by Nature. Perfected by Arpran. Delivered Worldwide."}"
           </p>
         </div>
 

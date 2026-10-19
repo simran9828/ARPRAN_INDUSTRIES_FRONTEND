@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useLayoutEffect } from 'react';
 import { 
   Plus, Edit2, Trash2, Search, CheckCircle2, AlertCircle, 
   Loader2, X, BookOpen, Calendar, Clock, Image as ImageIcon, 
@@ -34,23 +34,81 @@ export default function BlogManager() {
   const [deleteId, setDeleteId] = useState(null);
   const [editorTab, setEditorTab] = useState('write'); // 'write' or 'preview'
 
+  // Textarea cursor stabilization refs
+  const textareaRef = useRef(null);
+  const cursorPosRef = useRef(null);
+
+  const [mainTab, setMainTab] = useState('articles'); // 'articles' | 'banner'
+  const [blogPage, setBlogPage] = useState({
+    title: 'Architectural Stone Journal & Material Insights',
+    h1: 'Architectural Stone Journal & Material Guides',
+    tagline: 'Insights on natural stone geology, diamond gangsaw fabrication, slip-resistance standards, and innovative surface treatments from our technical team.',
+    content: {
+      badge: 'Architectural Insights & Journal'
+    }
+  });
+  const [isSavingBanner, setIsSavingBanner] = useState(false);
+
   const { authFetch } = useAuth();
   const { refreshCMS } = useCMS();
 
   const loadBlogs = async () => {
     try {
       setLoading(true);
-      const res = await authFetch('/api/admin/blogs');
-      if (res.ok) {
-        const json = await res.json();
+      const [resBlogs, resPage] = await Promise.all([
+        authFetch('/api/admin/blogs'),
+        authFetch('/api/admin/pages/blogs')
+      ]);
+
+      if (resBlogs.ok) {
+        const json = await resBlogs.json();
         if (json.success && json.data) {
           setBlogs(json.data);
         }
       }
+
+      if (resPage.ok) {
+        const pageJson = await resPage.json();
+        if (pageJson.success && pageJson.data) {
+          setBlogPage(prev => ({
+            ...prev,
+            ...pageJson.data,
+            content: {
+              ...prev.content,
+              ...(pageJson.data.content || {})
+            }
+          }));
+        }
+      }
     } catch (err) {
-      console.error('Failed to load blogs:', err);
+      console.error('Failed to load blogs or page:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveBanner = async (e) => {
+    if (e) e.preventDefault();
+    setIsSavingBanner(true);
+    setMessage({ type: '', text: '' });
+
+    try {
+      const res = await authFetch('/api/admin/pages/blogs', {
+        method: 'PUT',
+        body: blogPage
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to update blog page banner');
+      }
+
+      setMessage({ type: 'success', text: 'Blog page banner updated successfully!' });
+      if (refreshCMS) await refreshCMS();
+    } catch (err) {
+      setMessage({ type: 'error', text: err.message });
+    } finally {
+      setIsSavingBanner(false);
     }
   };
 
@@ -105,32 +163,135 @@ A: Yes, low water absorption (<0.2%) guarantees extreme resilience against frost
     setIsModalOpen(true);
   };
 
-  // Helper to insert formatting templates into the main blog textarea
-  const insertFormatting = (template) => {
-    const textarea = document.getElementById('blog-content-textarea');
+  // Maintain exact cursor position across typing and state updates
+  useLayoutEffect(() => {
+    if (cursorPosRef.current && textareaRef.current && document.activeElement === textareaRef.current) {
+      const { start, end } = cursorPosRef.current;
+      if (typeof start === 'number' && typeof end === 'number') {
+        if (textareaRef.current.selectionStart !== start || textareaRef.current.selectionEnd !== end) {
+          textareaRef.current.setSelectionRange(start, end);
+        }
+      }
+    }
+  }, [editingBlog?.content]);
+
+  // Track selection whenever cursor moves
+  const handleCursorTrack = (e) => {
+    if (e && e.target) {
+      cursorPosRef.current = {
+        start: e.target.selectionStart,
+        end: e.target.selectionEnd
+      };
+    }
+  };
+
+  // Helper to insert formatting templates into the main blog textarea with zero cursor jumping
+  const insertFormatting = (type) => {
+    const textarea = textareaRef.current || document.getElementById('blog-content-textarea');
+    const current = editingBlog?.content || '';
+
     if (!textarea) {
-      setEditingBlog(prev => ({ ...prev, content: (prev.content ? prev.content + '\n\n' : '') + template }));
+      let fallbackText = '';
+      if (type === 'h2') fallbackText = '\n\n## Section Heading\nDetailed specifications here...\n';
+      else if (type === 'h3') fallbackText = '\n\n### Subheading\nDetailed notes here...\n';
+      else if (type === 'bold') fallbackText = '**Bold Text**';
+      else if (type === 'quote') fallbackText = '\n\n> "Built by Nature. Perfected by Arpran. Delivered Worldwide."\n';
+      else if (type === 'points') fallbackText = '\n\n• Key Point 1: Direct quarry extraction across Rajasthan\n• Key Point 2: Diamond multi-wire gangsaw processing\n';
+      else if (type === 'faqs') fallbackText = '\n\n### Frequently Asked Questions\n**Q: What is the recommended slab thickness?**\nA: 20mm or 30mm calibrated gangsaw slabs.\n';
+      else fallbackText = type;
+      setEditingBlog(prev => ({ ...prev, content: (prev.content ? prev.content + '\n' : '') + fallbackText }));
       return;
     }
-    const start = textarea.selectionStart || 0;
-    const end = textarea.selectionEnd || 0;
-    const current = editingBlog?.content || '';
-    const before = current.substring(0, start);
-    const after = current.substring(end);
-    const selected = current.substring(start, end);
 
-    let textToInsert = template;
-    if (selected && template.includes('Text')) {
-      textToInsert = template.replace('Text', selected);
+    textarea.focus();
+    const start = typeof textarea.selectionStart === 'number' ? textarea.selectionStart : (cursorPosRef.current?.start ?? current.length);
+    const end = typeof textarea.selectionEnd === 'number' ? textarea.selectionEnd : (cursorPosRef.current?.end ?? start);
+
+    const before = current.substring(0, start);
+    const selected = current.substring(start, end);
+    const after = current.substring(end);
+
+    const needsLeadingNewline = start > 0 && !before.endsWith('\n');
+    const lead = needsLeadingNewline ? '\n\n' : (start > 0 && !before.endsWith('\n\n') ? '\n' : '');
+
+    let inserted = '';
+    let selectOffsetStart = 0;
+    let selectOffsetEnd = 0;
+
+    switch (type) {
+      case 'h2': {
+        const heading = selected || 'Section Heading (H2)';
+        inserted = `${lead}## ${heading}\n`;
+        selectOffsetStart = lead.length + 3;
+        selectOffsetEnd = selectOffsetStart + heading.length;
+        break;
+      }
+      case 'h3': {
+        const heading = selected || 'Subheading (H3)';
+        inserted = `${lead}### ${heading}\n`;
+        selectOffsetStart = lead.length + 4;
+        selectOffsetEnd = selectOffsetStart + heading.length;
+        break;
+      }
+      case 'bold': {
+        const text = selected || 'Bold Text';
+        inserted = `**${text}**`;
+        selectOffsetStart = 2;
+        selectOffsetEnd = 2 + text.length;
+        break;
+      }
+      case 'quote': {
+        const text = selected || 'Built by Nature. Perfected by Arpran. Delivered Worldwide.';
+        inserted = `${lead}> "${text}"\n`;
+        selectOffsetStart = lead.length + 3;
+        selectOffsetEnd = selectOffsetStart + text.length;
+        break;
+      }
+      case 'points': {
+        if (selected) {
+          const lines = selected.split('\n').filter(Boolean);
+          const bulleted = lines.map(l => /^[•\-\*]\s+/.test(l) ? l : `• ${l}`).join('\n');
+          inserted = `${lead}${bulleted}\n`;
+          selectOffsetStart = lead.length;
+          selectOffsetEnd = lead.length + bulleted.length;
+        } else {
+          inserted = `${lead}• Key Point 1: Direct quarry extraction across Rajasthan\n• Key Point 2: Diamond multi-wire gangsaw processing with ±1mm calibration\n• Key Point 3: Seaworthy fumigated A-frame export crating\n`;
+          selectOffsetStart = lead.length + 2;
+          selectOffsetEnd = lead.length + 13;
+        }
+        break;
+      }
+      case 'faqs': {
+        if (selected) {
+          inserted = `${lead}**Q: ${selected}**\nA: Provide architectural answer here.\n`;
+          selectOffsetStart = inserted.indexOf('Provide');
+          selectOffsetEnd = selectOffsetStart + 'Provide architectural answer here.'.length;
+        } else {
+          inserted = `${lead}### Frequently Asked Questions\n**Q: What is the recommended slab thickness?**\nA: For commercial flooring and exterior facades, 20mm or 30mm calibrated gangsaw slabs are standard.\n\n**Q: How does this natural stone perform in extreme climates?**\nA: Dense igneous crystalline bonding and low water absorption (<0.2%) prevent freeze-thaw damage.\n`;
+          selectOffsetStart = lead.length + 4;
+          selectOffsetEnd = selectOffsetStart + 30;
+        }
+        break;
+      }
+      default:
+        inserted = type;
+        selectOffsetStart = inserted.length;
+        selectOffsetEnd = inserted.length;
     }
 
-    const updated = before + textToInsert + after;
+    const updated = before + inserted + after;
+    const newStart = start + selectOffsetStart;
+    const newEnd = start + selectOffsetEnd;
+
+    cursorPosRef.current = { start: newStart, end: newEnd };
     setEditingBlog(prev => ({ ...prev, content: updated }));
-    setTimeout(() => {
-      textarea.focus();
-      const newPos = start + textToInsert.length;
-      textarea.setSelectionRange(newPos, newPos);
-    }, 40);
+
+    requestAnimationFrame(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        textareaRef.current.setSelectionRange(newStart, newEnd);
+      }
+    });
   };
 
   const handleDelete = async () => {
@@ -269,8 +430,126 @@ A: Yes, low water absorption (<0.2%) guarantees extreme resilience against frost
         </div>
       )}
 
-      {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
+      {/* Tabs */}
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-1">
+        <button
+          onClick={() => setMainTab('articles')}
+          className={`px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition flex items-center gap-2 cursor-pointer ${
+            mainTab === 'articles'
+              ? 'bg-[#0A4E9B] text-white shadow-sm'
+              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
+          }`}
+        >
+          <BookOpen className="w-3.5 h-3.5" />
+          <span>Journal Articles ({blogs.length})</span>
+        </button>
+
+        <button
+          onClick={() => setMainTab('banner')}
+          className={`px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition flex items-center gap-2 cursor-pointer ${
+            mainTab === 'banner'
+              ? 'bg-[#0A4E9B] text-white shadow-sm'
+              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Blog Page Banner & SEO</span>
+        </button>
+      </div>
+
+      {/* Banner & SEO Editor View */}
+      {mainTab === 'banner' && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 space-y-6">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div>
+              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#0A4E9B]" />
+                <span>Blog & Journal Page Banner Headlines</span>
+              </h2>
+              <p className="text-xs text-slate-500 mt-1">Configure the dark banner headline, badge, and SEO description for the public /blog page.</p>
+            </div>
+
+            <button
+              onClick={handleSaveBanner}
+              disabled={isSavingBanner}
+              className="px-5 py-2.5 bg-[#0A4E9B] hover:bg-[#073b77] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition shadow flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              {isSavingBanner ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              <span>Save Banner</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                Badge Text
+              </label>
+              <input
+                type="text"
+                value={blogPage.content?.badge || ''}
+                onChange={(e) => setBlogPage({
+                  ...blogPage,
+                  content: { ...blogPage.content, badge: e.target.value }
+                })}
+                placeholder="Architectural Insights & Journal"
+                className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                Page Title (Browser Tag)
+              </label>
+              <input
+                type="text"
+                value={blogPage.title || ''}
+                onChange={(e) => setBlogPage({ ...blogPage, title: e.target.value })}
+                className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+              Main H1 Heading
+            </label>
+            <input
+              type="text"
+              value={blogPage.h1 || ''}
+              onChange={(e) => setBlogPage({
+                ...blogPage,
+                h1: e.target.value,
+                content: { ...blogPage.content, h1: e.target.value }
+              })}
+              placeholder="Architectural Stone Journal & Material Guides"
+              className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+              Subtitle / Description
+            </label>
+            <textarea
+              rows="3"
+              value={blogPage.tagline || ''}
+              onChange={(e) => setBlogPage({
+                ...blogPage,
+                tagline: e.target.value,
+                content: { ...blogPage.content, tagline: e.target.value }
+              })}
+              placeholder="Insights on natural stone geology, diamond gangsaw fabrication..."
+              className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Articles Tab Content */}
+      {mainTab === 'articles' && (
+        <div className="space-y-6">
+          {/* Filter and Search Bar */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
         <div className="relative flex-1 min-w-[240px]">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
           <input
@@ -430,6 +709,8 @@ A: Yes, low water absorption (<0.2%) guarantees extreme resilience against frost
           ))}
         </div>
       )}
+    </div>
+  )}
 
       {/* =========================================================================
           ADD / EDIT ARTICLE MODAL
@@ -668,7 +949,8 @@ A: Yes, low water absorption (<0.2%) guarantees extreme resilience against frost
                     {/* H2 Heading Button */}
                     <button
                       type="button"
-                      onClick={() => insertFormatting('\n\n## Section Heading (H2)\nDetailed architectural specifications and engineering case study for this section...\n')}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => insertFormatting('h2')}
                       className="px-2.5 py-1.5 bg-white hover:bg-blue-50 hover:border-[#0A4E9B] hover:text-[#0A4E9B] text-slate-700 rounded-lg text-xs font-bold border border-slate-200 transition flex items-center gap-1 shadow-2xs cursor-pointer"
                       title="Insert H2 Section Heading"
                     >
@@ -679,9 +961,10 @@ A: Yes, low water absorption (<0.2%) guarantees extreme resilience against frost
                     {/* H3 Subheading Button */}
                     <button
                       type="button"
-                      onClick={() => insertFormatting('\n\n### Subheading (H3)\nSub-topic breakdown and technical notes...\n')}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => insertFormatting('h3')}
                       className="px-2.5 py-1.5 bg-white hover:bg-blue-50 hover:border-[#0A4E9B] hover:text-[#0A4E9B] text-slate-700 rounded-lg text-xs font-bold border border-slate-200 transition flex items-center gap-1 shadow-2xs cursor-pointer"
-                      title="Insert H3 Sub-Heading"
+                      title="Insert H3 Subheading"
                     >
                       <span className="px-1 py-0.2 bg-slate-100 text-slate-700 rounded text-[10px] font-mono">H3</span>
                       <span>Subheading</span>
@@ -690,7 +973,8 @@ A: Yes, low water absorption (<0.2%) guarantees extreme resilience against frost
                     {/* Bullet Points Section Button */}
                     <button
                       type="button"
-                      onClick={() => insertFormatting('\n\n• Key Point 1: Direct quarry extraction across Rajasthan\n• Key Point 2: Diamond multi-wire gangsaw processing with ±1mm calibration\n• Key Point 3: Seaworthy fumigated A-frame export crating\n')}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => insertFormatting('points')}
                       className="px-2.5 py-1.5 bg-white hover:bg-blue-50 hover:border-[#0A4E9B] hover:text-[#0A4E9B] text-slate-700 rounded-lg text-xs font-bold border border-slate-200 transition flex items-center gap-1 shadow-2xs cursor-pointer"
                       title="Insert Bullet Points Section"
                     >
@@ -701,7 +985,8 @@ A: Yes, low water absorption (<0.2%) guarantees extreme resilience against frost
                     {/* FAQs Section Button */}
                     <button
                       type="button"
-                      onClick={() => insertFormatting('\n\n### Frequently Asked Questions\n**Q: What is the recommended slab thickness?**\nA: For commercial flooring and exterior facades, 20mm or 30mm calibrated gangsaw slabs are standard.\n\n**Q: How does this natural stone perform in extreme climates?**\nA: Dense igneous crystalline bonding and low water absorption (<0.2%) prevent freeze-thaw damage.\n')}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => insertFormatting('faqs')}
                       className="px-2.5 py-1.5 bg-white hover:bg-blue-50 hover:border-[#0A4E9B] hover:text-[#0A4E9B] text-slate-700 rounded-lg text-xs font-bold border border-slate-200 transition flex items-center gap-1 shadow-2xs cursor-pointer"
                       title="Insert Frequently Asked Questions (FAQs)"
                     >
@@ -714,7 +999,8 @@ A: Yes, low water absorption (<0.2%) guarantees extreme resilience against frost
                     {/* Bold Button */}
                     <button
                       type="button"
-                      onClick={() => insertFormatting('**Bold Text**')}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => insertFormatting('bold')}
                       className="px-2 py-1.5 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold border border-slate-200 transition shadow-2xs cursor-pointer"
                       title="Bold Text"
                     >
@@ -724,7 +1010,8 @@ A: Yes, low water absorption (<0.2%) guarantees extreme resilience against frost
                     {/* Pull Quote Button */}
                     <button
                       type="button"
-                      onClick={() => insertFormatting('\n> "Built by Nature. Perfected by Arpran. Delivered Worldwide."\n')}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => insertFormatting('quote')}
                       className="px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-serif italic border border-slate-200 transition shadow-2xs cursor-pointer"
                       title="Pull Quote"
                     >
@@ -737,6 +1024,7 @@ A: Yes, low water absorption (<0.2%) guarantees extreme resilience against frost
                 {editorTab === 'write' ? (
                   <div>
                     <textarea
+                      ref={textareaRef}
                       id="blog-content-textarea"
                       rows="14"
                       placeholder={`Write your complete architectural article here...
@@ -756,7 +1044,16 @@ Detailed notes...
 **Q: Question text here?**
 A: Clear answer text here.`}
                       value={editingBlog.content || ''}
-                      onChange={(e) => setEditingBlog(prev => ({ ...prev, content: e.target.value }))}
+                      onChange={(e) => {
+                        const target = e.target;
+                        const start = target.selectionStart;
+                        const end = target.selectionEnd;
+                        cursorPosRef.current = { start, end };
+                        setEditingBlog(prev => ({ ...prev, content: target.value }));
+                      }}
+                      onSelect={handleCursorTrack}
+                      onClick={handleCursorTrack}
+                      onKeyUp={handleCursorTrack}
                       className="w-full px-4 py-3 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0A4E9B]/20 focus:border-[#0A4E9B] leading-relaxed font-sans text-slate-900"
                     />
                     <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1 px-1">

@@ -53,6 +53,11 @@ export default function HomePage({ onOpenProduct, onOpenBlog }) {
   const collPrev = homeData.collections_preview || {};
   const finPrev = homeData.finishes_preview || {};
   const blogPrev = homeData.blog_preview || {};
+  const whyChoose = homeData.why_choose || {};
+  const categoryCards = collPrev.category_cards || {};
+  const bottomCtaText = collPrev.bottom_cta_text || "Explore Complete 250+ Stone Inventory in Main Catalog";
+  const bottomCtaLink = collPrev.bottom_cta_link || "/products";
+  const aboutTrustStrip = aboutPrev.trust_strip || ["10+ Yrs Quarrying", "25+ Nations"];
 
   const activeSlides = (heroSlides && heroSlides.length > 0) ? heroSlides : HERO_SLIDES;
 
@@ -318,13 +323,14 @@ export default function HomePage({ onOpenProduct, onOpenBlog }) {
                 </Link>
 
                 <div className="flex items-center gap-3 text-xs text-slate-600 font-semibold">
-                  <span className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" /> 10+ Yrs Quarrying
-                  </span>
-                  <span>•</span>
-                  <span className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" /> 25+ Nations
-                  </span>
+                  {aboutTrustStrip.map((item, idx) => (
+                    <React.Fragment key={idx}>
+                      {idx > 0 && <span>•</span>}
+                      <span className="flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" /> {item}
+                      </span>
+                    </React.Fragment>
+                  ))}
                 </div>
               </div>
 
@@ -490,7 +496,7 @@ export default function HomePage({ onOpenProduct, onOpenBlog }) {
                 }
               };
 
-              const config = CATEGORY_SHOWCASE_CONFIG[catName] || {
+              const config = (categoryCards && categoryCards[catName]) || CATEGORY_SHOWCASE_CONFIG[catName] || {
                 slug: catName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
                 image: firstItem.image || '/images/hero/granite-series-hero.jpg',
                 specBadge: 'Architectural Stone',
@@ -544,10 +550,10 @@ export default function HomePage({ onOpenProduct, onOpenBlog }) {
           {/* Bottom Direct CTA Strip */}
           <div className="mt-8 pt-6 border-t border-slate-200 text-center flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
-              to="/products"
+              to={bottomCtaLink}
               className="inline-flex items-center gap-2 px-7 py-3 bg-slate-900 hover:bg-[#B89047] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-md hover:shadow-xl"
             >
-              <span>Explore Complete 250+ Stone Inventory in Main Catalog</span>
+              <span>{bottomCtaText}</span>
               <ArrowRight className="w-4 h-4 text-[#D4AF37]" />
             </Link>
           </div>
@@ -643,306 +649,198 @@ export default function HomePage({ onOpenProduct, onOpenBlog }) {
           <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/95 backdrop-blur-md border border-[#EADCC0] shadow-[0_2px_12px_rgba(184,144,71,0.06)] text-[#B89047] text-xs font-semibold tracking-[0.16em] uppercase">
               <span className="w-1.5 h-1.5 rounded-full bg-[#B89047] animate-pulse" />
-              <span>Architectural Partnership & Advantage</span>
+              <span>{whyChoose.badge || "Architectural Partnership & Advantage"}</span>
             </div>
 
             <h2 className="text-3xl sm:text-4xl lg:text-[44px] font-semibold text-slate-900 tracking-[-0.03em] leading-[1.18] mt-3">
-              Why Leading Architects & Builders <span className="text-[#B89047]">Trust ARPRAN</span>
+              {whyChoose.heading || <>Why Leading Architects & Builders <span className="text-[#B89047]">Trust ARPRAN</span></>}
             </h2>
 
             <p className="text-sm sm:text-base text-slate-600 mt-2.5 leading-relaxed font-normal max-w-2xl mx-auto">
-              From direct quarry extraction to computerized diamond gangsaw slicing, dry-lay sequencing, and seaworthy containerized export, we deliver precision natural stone tailored for landmark architecture.
+              {whyChoose.description || "From direct quarry extraction to computerized diamond gangsaw slicing, dry-lay sequencing, and seaworthy containerized export, we deliver precision natural stone tailored for landmark architecture."}
             </p>
           </div>
 
           {/* 4 Core Pillars Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8 sm:mb-10">
-
-            {/* Pillar 1 */}
-            <div className="bg-gradient-to-b from-[#FDFBF7] to-[#F7F3EA] border border-[#EAE3D2] hover:border-[#B89047] rounded-2xl p-6 sm:p-7 shadow-[0_6px_22px_rgba(184,144,71,0.06)] hover:shadow-[0_16px_35px_rgba(184,144,71,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#B89047] to-[#D4AF37] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div>
-                <div className="flex items-center justify-between mb-5">
-                  <div className="w-12 h-12 rounded-xl bg-white text-[#B89047] flex items-center justify-center group-hover:bg-[#B89047] group-hover:text-white transition-all duration-300 shadow-xs border border-[#EFE7D7]">
-                    <Compass className="w-6 h-6" />
+            {(whyChoose.pillars || [
+              {
+                num: "01",
+                title: "Direct Quarry Ownership",
+                badge: "Direct Origin",
+                description: "Private mining leases across Makrana, Rajsamand, Jodhpur & Southern granite belts guarantee genuine color continuity, zero broker markups, and monolithic block integrity.",
+                checkpoints: ["100% Traceable Quarry Sourcing", "Consistent Veining & Texture"]
+              },
+              {
+                num: "02",
+                title: "Zero-Deviation Gangsaw",
+                badge: "±1mm Tolerance",
+                description: "Computerized diamond multi-wire gangsaws slice calibrated slabs to exact millimeter specs. Zero thickness deviation prevents uneven floor lips and ensures flush facade cladding.",
+                checkpoints: ["Calibrated 18mm / 20mm / 30mm", "Diamond Polish Up to 95° Gloss"]
+              },
+              {
+                num: "03",
+                title: "Dry-Lay & Vein Matching",
+                badge: "Pre-Inspection",
+                description: "Every sequence is dry-laid in our Jaipur inspection facility before dispatch. Slabs are bookmatched, numbered sequentially, and high-res video proof is shared for client sign-off.",
+                checkpoints: ["Bookmatched Sequence Numbering", "Zero Hairline Crack Guarantee"]
+              },
+              {
+                num: "04",
+                title: "ISPM-15 Seaworthy Crating",
+                badge: "Port Dispatch",
+                description: "Heavy-duty pine A-frames, fumigation certified, waterproof plastic shrink-wrap, and steel banding safeguard slabs for transit from Mundra Port to job sites across 25+ countries.",
+                checkpoints: ["Fumigated Seaworthy Packaging", "Direct Mundra / Nhava Sheva Ports"]
+              }
+            ]).map((pillar, idx) => {
+              const icons = [Compass, Layers, CheckCircle2, Truck];
+              const IconComp = icons[idx % icons.length];
+              return (
+                <div
+                  key={idx}
+                  className="bg-gradient-to-b from-[#FDFBF7] to-[#F7F3EA] border border-[#EAE3D2] hover:border-[#B89047] rounded-2xl p-6 sm:p-7 shadow-[0_6px_22px_rgba(184,144,71,0.06)] hover:shadow-[0_16px_35px_rgba(184,144,71,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden"
+                >
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#B89047] to-[#D4AF37] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div>
+                    <div className="flex items-center justify-between mb-5">
+                      <div className="w-12 h-12 rounded-xl bg-white text-[#B89047] flex items-center justify-center group-hover:bg-[#B89047] group-hover:text-white transition-all duration-300 shadow-xs border border-[#EFE7D7]">
+                        <IconComp className="w-6 h-6" />
+                      </div>
+                      <span className="text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#FBF7EE] text-[#B89047] border border-[#EADCC0] shadow-2xs">
+                        {pillar.badge || `Pillar ${idx + 1}`}
+                      </span>
+                    </div>
+                    <h3 className="font-semibold text-lg text-slate-900 mb-2 group-hover:text-[#B89047] transition-colors">
+                      {pillar.title}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
+                      {pillar.description || pillar.text}
+                    </p>
                   </div>
-                  <span className="text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#FBF7EE] text-[#B89047] border border-[#EADCC0] shadow-2xs">
-                    Direct Origin
-                  </span>
+                  {pillar.checkpoints && pillar.checkpoints.length > 0 && (
+                    <div className="mt-6 pt-4 border-t border-[#EFE7D7] space-y-1.5 text-xs font-medium text-slate-600">
+                      {pillar.checkpoints.map((cp, cpidx) => (
+                        <div key={cpidx} className="flex items-center gap-2 text-slate-800">
+                          <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span>{cp}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <h3 className="font-semibold text-lg text-slate-900 mb-2 group-hover:text-[#B89047] transition-colors">
-                  Direct Quarry Ownership
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
-                  Private mining leases across Makrana, Rajsamand, Jodhpur & Southern granite belts guarantee genuine color continuity, zero broker markups, and monolithic block integrity.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[#EFE7D7] space-y-1.5 text-xs font-medium text-slate-600">
-                <div className="flex items-center gap-2 text-slate-800">
-                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>100% Traceable Quarry Sourcing</span>
-                </div>
-                <div className="flex items-center gap-2 text-slate-800">
-                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>Consistent Veining & Texture</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Pillar 2 */}
-            <div className="bg-gradient-to-b from-[#FDFBF7] to-[#F7F3EA] border border-[#EAE3D2] hover:border-[#B89047] rounded-2xl p-6 sm:p-7 shadow-[0_6px_22px_rgba(184,144,71,0.06)] hover:shadow-[0_16px_35px_rgba(184,144,71,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#B89047] to-[#D4AF37] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div>
-                <div className="flex items-center justify-between mb-5">
-                  <div className="w-12 h-12 rounded-xl bg-white text-[#B89047] flex items-center justify-center group-hover:bg-[#B89047] group-hover:text-white transition-all duration-300 shadow-xs border border-[#EFE7D7]">
-                    <Layers className="w-6 h-6" />
-                  </div>
-                  <span className="text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#FBF7EE] text-[#B89047] border border-[#EADCC0] shadow-2xs">
-                    ±1mm Tolerance
-                  </span>
-                </div>
-                <h3 className="font-semibold text-lg text-slate-900 mb-2 group-hover:text-[#B89047] transition-colors">
-                  Zero-Deviation Gangsaw
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
-                  Computerized diamond multi-wire gangsaws slice calibrated slabs to exact millimeter specs. Zero thickness deviation prevents uneven floor lips and ensures flush facade cladding.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[#EFE7D7] space-y-1.5 text-xs font-medium text-slate-600">
-                <div className="flex items-center gap-2 text-slate-800">
-                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>Calibrated 18mm / 20mm / 30mm</span>
-                </div>
-                <div className="flex items-center gap-2 text-slate-800">
-                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>Diamond Polish Up to 95° Gloss</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Pillar 3 */}
-            <div className="bg-gradient-to-b from-[#FDFBF7] to-[#F7F3EA] border border-[#EAE3D2] hover:border-[#B89047] rounded-2xl p-6 sm:p-7 shadow-[0_6px_22px_rgba(184,144,71,0.06)] hover:shadow-[0_16px_35px_rgba(184,144,71,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#B89047] to-[#D4AF37] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div>
-                <div className="flex items-center justify-between mb-5">
-                  <div className="w-12 h-12 rounded-xl bg-white text-[#B89047] flex items-center justify-center group-hover:bg-[#B89047] group-hover:text-white transition-all duration-300 shadow-xs border border-[#EFE7D7]">
-                    <CheckCircle2 className="w-6 h-6" />
-                  </div>
-                  <span className="text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#FBF7EE] text-[#B89047] border border-[#EADCC0] shadow-2xs">
-                    Pre-Inspection
-                  </span>
-                </div>
-                <h3 className="font-semibold text-lg text-slate-900 mb-2 group-hover:text-[#B89047] transition-colors">
-                  Dry-Lay & Vein Matching
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
-                  Every sequence is dry-laid in our Jaipur inspection facility before dispatch. Slabs are bookmatched, numbered sequentially, and high-res video proof is shared for client sign-off.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[#EFE7D7] space-y-1.5 text-xs font-medium text-slate-600">
-                <div className="flex items-center gap-2 text-slate-800">
-                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>Bookmatched Sequence Numbering</span>
-                </div>
-                <div className="flex items-center gap-2 text-slate-800">
-                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>Zero Hairline Crack Guarantee</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Pillar 4 */}
-            <div className="bg-gradient-to-b from-[#FDFBF7] to-[#F7F3EA] border border-[#EAE3D2] hover:border-[#B89047] rounded-2xl p-6 sm:p-7 shadow-[0_6px_22px_rgba(184,144,71,0.06)] hover:shadow-[0_16px_35px_rgba(184,144,71,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#B89047] to-[#D4AF37] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div>
-                <div className="flex items-center justify-between mb-5">
-                  <div className="w-12 h-12 rounded-xl bg-white text-[#B89047] flex items-center justify-center group-hover:bg-[#B89047] group-hover:text-white transition-all duration-300 shadow-xs border border-[#EFE7D7]">
-                    <Truck className="w-6 h-6" />
-                  </div>
-                  <span className="text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#FBF7EE] text-[#B89047] border border-[#EADCC0] shadow-2xs">
-                    Port Dispatch
-                  </span>
-                </div>
-                <h3 className="font-semibold text-lg text-slate-900 mb-2 group-hover:text-[#B89047] transition-colors">
-                  ISPM-15 Seaworthy Crating
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
-                  Heavy-duty pine A-frames, fumigation certified, waterproof plastic shrink-wrap, and steel banding safeguard slabs for transit from Mundra Port to job sites across 25+ countries.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[#EFE7D7] space-y-1.5 text-xs font-medium text-slate-600">
-                <div className="flex items-center gap-2 text-slate-800">
-                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>Fumigated Seaworthy Packaging</span>
-                </div>
-                <div className="flex items-center gap-2 text-slate-800">
-                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>Direct Mundra / Nhava Sheva Ports</span>
-                </div>
-              </div>
-            </div>
-
+              );
+            })}
           </div>
 
-          {/* Interactive Architectural Sample Box Callout (Bright Luxury Edition) */}
-          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-white via-[#FDFBF7] to-[#F7F3EA] text-slate-800 p-6 sm:p-8 shadow-xl border border-[#EAE3D2]">
-            {/* Background Decorative Accents */}
-            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-[#B89047]/10 blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-amber-100/40 blur-3xl pointer-events-none" />
+          {/* Interactive Architectural Sample Box Callout */}
+          {(() => {
+            const sampleBox = whyChoose.sample_box || {};
+            const sampleBullets = sampleBox.bullets || [
+              "Real quarried slab cuts (150×150×20mm)",
+              "Side-by-side surface finish comparison",
+              "Physical ASTM / CE technical test reports",
+              "Express international courier delivery"
+            ];
+            const sampleSwatches = sampleBox.swatches || [
+              { name: "Makrana White", tag: "High Gloss", subtitle: "Mirror Polish 90°+", image: "/images/finish-polished.jpg" },
+              { name: "Black Galaxy", tag: "Non-Slip R11", subtitle: "Thermal Flamed", image: "/images/finish-flamed.jpg" },
+              { name: "Kandla Grey", tag: "Velvet Matte", subtitle: "Satin Honed", image: "/images/finish-honed.jpg" },
+              { name: "Tan Brown", tag: "Tactile", subtitle: "Leather Touch", image: "/images/blog-granite.jpg" }
+            ];
 
-            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
+            return (
+              <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-white via-[#FDFBF7] to-[#F7F3EA] text-slate-800 p-6 sm:p-8 shadow-xl border border-[#EAE3D2]">
+                <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-[#B89047]/10 blur-3xl pointer-events-none" />
+                <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-amber-100/40 blur-3xl pointer-events-none" />
 
-              {/* Left Column: Sample Kit Details & Action */}
-              <div className="lg:col-span-7">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FBF7EE] border border-[#EADCC0] text-[#B89047] text-xs font-bold uppercase tracking-wider mb-3 shadow-2xs">
-                  <Package className="w-3.5 h-3.5 text-[#B89047]" />
-                  <span>Architect & Builder Exclusive Service</span>
-                </div>
-
-                <h3 className="text-2xl sm:text-3xl font-serif font-normal text-slate-900 tracking-normal leading-tight">
-                  Request an Architectural <span className="italic text-[#B89047]">Stone Sample Box</span>
-                </h3>
-
-                <p className="text-sm sm:text-base text-slate-600 mt-2.5 leading-relaxed font-normal">
-                  Working on a luxury residential villa, commercial facade, hotel lobby, or landscaping development? Touch and evaluate our natural stone caliber in person. We dispatch bespoke 150×150mm tile specimens with your specified surface finishes (Polished, Flamed, Honed, Leather) directly to your studio.
-                </p>
-
-                {/* Benefits Bullet Points */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-5 pt-5 border-t border-stone-200 text-xs sm:text-sm text-slate-700">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#B89047] shrink-0" />
-                    <span>Real quarried slab cuts (150×150×20mm)</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#B89047] shrink-0" />
-                    <span>Side-by-side surface finish comparison</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#B89047] shrink-0" />
-                    <span>Physical ASTM / CE technical test reports</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#B89047] shrink-0" />
-                    <span>Express international courier delivery</span>
-                  </div>
-                </div>
-
-                {/* CTAs */}
-                <div className="mt-6 flex flex-wrap items-center gap-4">
-                  <Link
-                    to="/contact?subject=Sample+Box+Request"
-                    className="inline-flex items-center gap-2 px-7 py-3.5 bg-gradient-to-r from-[#B89047] to-[#A37E3A] hover:from-[#A37E3A] hover:to-[#8E6C2E] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md hover:shadow-xl hover:scale-[1.02]"
-                  >
-                    <Package className="w-4 h-4" />
-                    <span>Request Free Sample Box</span>
-                  </Link>
-
-                  <a
-                    href="/brochure.pdf"
-                    download
-                    className="inline-flex items-center gap-2 px-6 py-3.5 bg-white hover:bg-stone-50 text-slate-700 hover:text-[#B89047] font-bold text-xs uppercase tracking-wider rounded-xl border border-stone-300 transition-all shadow-xs"
-                  >
-                    <Download className="w-4 h-4 text-[#B89047]" />
-                    <span>Download E-Catalogue (PDF)</span>
-                  </a>
-                </div>
-              </div>
-
-              {/* Right Column: Visual Box Mockup Preview */}
-              <div className="lg:col-span-5">
-                <div className="bg-white border border-stone-200/90 rounded-2xl p-6 shadow-xl relative">
-                  <div className="flex items-center justify-between pb-4 border-b border-stone-100 text-xs">
-                    <span className="font-bold text-[#B89047] uppercase tracking-widest flex items-center gap-1.5">
-                      <Box className="w-4 h-4" />
-                      ARPRAN Studio Kit
-                    </span>
-                    <span className="text-stone-500">Specimen Dimensions: 150×150mm</span>
-                  </div>
-
-                  {/* 4 Sample Swatches Visual Display */}
-                  <div className="grid grid-cols-2 gap-3.5 my-5">
-                    <div className="rounded-xl overflow-hidden border border-stone-200/80 bg-white group/swatch shadow-2xs hover:shadow-md transition-shadow">
-                      <div className="h-24 w-full overflow-hidden relative">
-                        <img
-                          src="/images/finish-polished.jpg"
-                          alt="Makrana White Polished"
-                          className="w-full h-full object-cover group/swatch:scale-110 transition-transform duration-500"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
-                        <span className="absolute bottom-1.5 left-2 px-2 py-0.5 rounded-full bg-slate-900/80 text-[10px] font-bold text-white uppercase tracking-wider">
-                          High Gloss
-                        </span>
-                      </div>
-                      <div className="p-2.5">
-                        <p className="text-xs font-bold text-slate-900 truncate">Makrana White</p>
-                        <p className="text-[10px] text-[#B89047] font-semibold">Mirror Polish 90°+</p>
-                      </div>
+                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
+                  <div className="lg:col-span-7">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FBF7EE] border border-[#EADCC0] text-[#B89047] text-xs font-bold uppercase tracking-wider mb-3 shadow-2xs">
+                      <Package className="w-3.5 h-3.5 text-[#B89047]" />
+                      <span>{sampleBox.badge || "Architect & Builder Exclusive Service"}</span>
                     </div>
 
-                    <div className="rounded-xl overflow-hidden border border-stone-200/80 bg-white group/swatch shadow-2xs hover:shadow-md transition-shadow">
-                      <div className="h-24 w-full overflow-hidden relative">
-                        <img
-                          src="/images/finish-flamed.jpg"
-                          alt="Granite Flamed"
-                          className="w-full h-full object-cover group/swatch:scale-110 transition-transform duration-500"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
-                        <span className="absolute bottom-1.5 left-2 px-2 py-0.5 rounded-full bg-slate-900/80 text-[10px] font-bold text-white uppercase tracking-wider">
-                          Non-Slip R11
-                        </span>
-                      </div>
-                      <div className="p-2.5">
-                        <p className="text-xs font-bold text-slate-900 truncate">Black Galaxy</p>
-                        <p className="text-[10px] text-[#B89047] font-semibold">Thermal Flamed</p>
-                      </div>
+                    <h3 className="text-2xl sm:text-3xl font-serif font-normal text-slate-900 tracking-normal leading-tight">
+                      {sampleBox.title || <>Request an Architectural <span className="italic text-[#B89047]">Stone Sample Box</span></>}
+                    </h3>
+
+                    <p className="text-sm sm:text-base text-slate-600 mt-2.5 leading-relaxed font-normal">
+                      {sampleBox.description || "Working on a luxury residential villa, commercial facade, hotel lobby, or landscaping development? Touch and evaluate our natural stone caliber in person. We dispatch bespoke 150×150mm tile specimens with your specified surface finishes (Polished, Flamed, Honed, Leather) directly to your studio."}
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-5 pt-5 border-t border-stone-200 text-xs sm:text-sm text-slate-700">
+                      {sampleBullets.map((bullet, bidx) => (
+                        <div key={bidx} className="flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-[#B89047] shrink-0" />
+                          <span>{bullet}</span>
+                        </div>
+                      ))}
                     </div>
 
-                    <div className="rounded-xl overflow-hidden border border-stone-200/80 bg-white group/swatch shadow-2xs hover:shadow-md transition-shadow">
-                      <div className="h-24 w-full overflow-hidden relative">
-                        <img
-                          src="/images/finish-honed.jpg"
-                          alt="Sandstone Honed"
-                          className="w-full h-full object-cover group/swatch:scale-110 transition-transform duration-500"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
-                        <span className="absolute bottom-1.5 left-2 px-2 py-0.5 rounded-full bg-slate-900/80 text-[10px] font-bold text-white uppercase tracking-wider">
-                          Velvet Matte
-                        </span>
-                      </div>
-                      <div className="p-2.5">
-                        <p className="text-xs font-bold text-slate-900 truncate">Kandla Grey</p>
-                        <p className="text-[10px] text-[#B89047] font-semibold">Satin Honed</p>
-                      </div>
-                    </div>
+                    <div className="mt-6 flex flex-wrap items-center gap-4">
+                      <Link
+                        to={sampleBox.cta_button_link || "/contact?subject=Sample+Box+Request"}
+                        className="inline-flex items-center gap-2 px-7 py-3.5 bg-gradient-to-r from-[#B89047] to-[#A37E3A] hover:from-[#A37E3A] hover:to-[#8E6C2E] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md hover:shadow-xl hover:scale-[1.02]"
+                      >
+                        <Package className="w-4 h-4" />
+                        <span>{sampleBox.cta_button_text || "Request Free Sample Box"}</span>
+                      </Link>
 
-                    <div className="rounded-xl overflow-hidden border border-stone-200/80 bg-white group/swatch shadow-2xs hover:shadow-md transition-shadow">
-                      <div className="h-24 w-full overflow-hidden relative">
-                        <img
-                          src="/images/blog-granite.jpg"
-                          alt="Exotic Granite"
-                          className="w-full h-full object-cover group/swatch:scale-110 transition-transform duration-500"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
-                        <span className="absolute bottom-1.5 left-2 px-2 py-0.5 rounded-full bg-slate-900/80 text-[10px] font-bold text-white uppercase tracking-wider">
-                          Tactile
-                        </span>
-                      </div>
-                      <div className="p-2.5">
-                        <p className="text-xs font-bold text-slate-900 truncate">Tan Brown</p>
-                        <p className="text-[10px] text-[#B89047] font-semibold">Leather Touch</p>
-                      </div>
+                      {(sampleBox.catalogue_button_link || "/brochure.pdf") && (
+                        <a
+                          href={sampleBox.catalogue_button_link || "/brochure.pdf"}
+                          download
+                          className="inline-flex items-center gap-2 px-6 py-3.5 bg-white hover:bg-stone-50 text-slate-700 hover:text-[#B89047] font-bold text-xs uppercase tracking-wider rounded-xl border border-stone-300 transition-all shadow-xs"
+                        >
+                          <Download className="w-4 h-4 text-[#B89047]" />
+                          <span>{sampleBox.catalogue_button_text || "Download E-Catalogue (PDF)"}</span>
+                        </a>
+                      )}
                     </div>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-[#FBF7EE] border border-[#EADCC0] flex items-center justify-between text-xs text-slate-700">
-                    <span>Includes ASTM Physical Test Data Sheets</span>
-                    <span className="text-[#B89047] font-bold">100% Free for Architects</span>
+                  <div className="lg:col-span-5">
+                    <div className="bg-white border border-stone-200/90 rounded-2xl p-6 shadow-xl relative">
+                      <div className="flex items-center justify-between pb-4 border-b border-stone-100 text-xs">
+                        <span className="font-bold text-[#B89047] uppercase tracking-widest flex items-center gap-1.5">
+                          <Box className="w-4 h-4" />
+                          {sampleBox.studio_kit_title || "ARPRAN Studio Kit"}
+                        </span>
+                        <span className="text-stone-500">{sampleBox.studio_kit_subtitle || "Specimen Dimensions: 150×150mm"}</span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3.5 my-5">
+                        {sampleSwatches.map((swatch, sidx) => (
+                          <div key={sidx} className="rounded-xl overflow-hidden border border-stone-200/80 bg-white group/swatch shadow-2xs hover:shadow-md transition-shadow">
+                            <div className="h-24 w-full overflow-hidden relative">
+                              <img
+                                src={swatch.image}
+                                alt={swatch.name}
+                                className="w-full h-full object-cover group/swatch:scale-110 transition-transform duration-500"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
+                              <span className="absolute bottom-1.5 left-2 px-2 py-0.5 rounded-full bg-slate-900/80 text-[10px] font-bold text-white uppercase tracking-wider">
+                                {swatch.tag}
+                              </span>
+                            </div>
+                            <div className="p-2.5">
+                              <p className="text-xs font-bold text-slate-900 truncate">{swatch.name}</p>
+                              <p className="text-[10px] text-[#B89047] font-semibold">{swatch.subtitle}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-[#FBF7EE] border border-[#EADCC0] flex items-center justify-between text-xs text-slate-700">
+                        <span>{sampleBox.studio_kit_badge || "Includes ASTM Physical Test Data Sheets"}</span>
+                        <span className="text-[#B89047] font-bold">{sampleBox.studio_kit_highlight || "100% Free for Architects"}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-
-            </div>
-          </div>
+            );
+          })()}
 
         </div>
       </section>

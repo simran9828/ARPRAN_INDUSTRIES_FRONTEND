@@ -39,6 +39,8 @@ export default function FooterManager() {
     australia_phone: '',
     copyright_text: '',
     footer_tagline: '',
+    subtagline: '',
+    motto: '',
     newsletter_title: 'Newsletter'
   });
 
@@ -64,6 +66,8 @@ export default function FooterManager() {
           australia_phone: s.australia_phone || '',
           copyright_text: s.copyright_text || '',
           footer_tagline: s.footer_tagline || '',
+          subtagline: s.subtagline || s.footer_tagline || '',
+          motto: s.motto || '',
           newsletter_title: s.newsletter_title || 'Newsletter'
         });
       }
@@ -493,11 +497,24 @@ export default function FooterManager() {
         <form onSubmit={handleSaveSettings} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
           <div className="pb-4 border-b border-slate-100">
             <h2 className="text-base font-serif font-bold text-slate-900">
-              Bottom Strip & Copyright Line
+              Bottom Strip, Motto & Header Subtagline
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Customize the bottom-most copyright notice across all pages.
+              Customize the logo subtitle, bottom-most copyright notice, and inspirational stone brand motto.
             </p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+              Top Subtagline (Renders Under Centered Footer Logo)
+            </label>
+            <input
+              type="text"
+              value={addressData.subtagline || ''}
+              placeholder="Architectural Natural Stones & Global Container Exports"
+              onChange={(e) => setAddressData({ ...addressData, subtagline: e.target.value })}
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#0A4E9B]"
+            />
           </div>
 
           <div>
@@ -509,6 +526,19 @@ export default function FooterManager() {
               value={addressData.copyright_text}
               placeholder="© 2026 Arpran Industries Pvt. Ltd. All Right Reserved."
               onChange={(e) => setAddressData({ ...addressData, copyright_text: e.target.value })}
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#0A4E9B]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+              Brand Motto / Quote
+            </label>
+            <input
+              type="text"
+              value={addressData.motto || ''}
+              placeholder="Built by Nature. Perfected by Arpran. Delivered Worldwide."
+              onChange={(e) => setAddressData({ ...addressData, motto: e.target.value })}
               className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#0A4E9B]"
             />
           </div>

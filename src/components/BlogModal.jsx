@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Calendar, Clock, BookOpen, CheckCircle2, HelpCircle, ChevronDown, Sparkles } from 'lucide-react';
-import FormattedArticleContent from './FormattedArticleContent';
+import FormattedArticleContent, { renderInline } from './FormattedArticleContent';
 
 export default function BlogModal({ blog, onClose }) {
   const [activeFaq, setActiveFaq] = useState(0);
@@ -56,7 +56,7 @@ export default function BlogModal({ blog, onClose }) {
             {/* Excerpt Pull-Quote */}
             {blog.excerpt && (
               <div className="font-serif italic text-base text-slate-800 border-l-3 border-[#0A4E9B] pl-4 py-1 bg-blue-50/40 rounded-r-xl">
-                {blog.excerpt}
+                {renderInline(blog.excerpt)}
               </div>
             )}
 
@@ -84,7 +84,7 @@ export default function BlogModal({ blog, onClose }) {
                   {keyPoints.map((point, pidx) => (
                     <li key={pidx} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700">
                       <CheckCircle2 className="w-4 h-4 text-[#0A4E9B] shrink-0 mt-0.5" />
-                      <span>{point}</span>
+                      <span>{renderInline(point)}</span>
                     </li>
                   ))}
                 </ul>
@@ -99,17 +99,17 @@ export default function BlogModal({ blog, onClose }) {
                     {sec.heading && (
                       <h2 className="text-lg sm:text-xl font-serif font-bold text-slate-900 flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-[#0A4E9B] inline-block"></span>
-                        <span>{sec.heading}</span>
+                        <span>{renderInline(sec.heading)}</span>
                       </h2>
                     )}
                     {sec.subheading && (
                       <h3 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-[#0A4E9B] pl-4">
-                        {sec.subheading}
+                        {renderInline(sec.subheading)}
                       </h3>
                     )}
                     {sec.content && (
                       <p className="text-slate-700 leading-relaxed pl-4">
-                        {sec.content}
+                        {renderInline(sec.content)}
                       </p>
                     )}
                   </div>
@@ -138,7 +138,7 @@ export default function BlogModal({ blog, onClose }) {
                         onClick={() => setActiveFaq(activeFaq === fidx ? -1 : fidx)}
                         className="w-full p-4 text-left flex items-center justify-between gap-3 text-xs sm:text-sm font-bold text-slate-900 hover:text-[#0A4E9B] transition-colors cursor-pointer"
                       >
-                        <span>{faq.question}</span>
+                        <span>{renderInline(faq.question)}</span>
                         <ChevronDown 
                           className={`w-4 h-4 text-[#0A4E9B] shrink-0 transition-transform duration-200 ${
                             activeFaq === fidx ? 'rotate-180' : ''
@@ -147,7 +147,7 @@ export default function BlogModal({ blog, onClose }) {
                       </button>
                       {activeFaq === fidx && (
                         <div className="px-4 pb-4 pt-1 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 bg-slate-50/50">
-                          {faq.answer}
+                          {renderInline(faq.answer)}
                         </div>
                       )}
                     </div>

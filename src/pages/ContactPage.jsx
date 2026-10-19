@@ -12,8 +12,53 @@ export default function ContactPage() {
   const { settings, pages } = useCMS();
   const contactPageData = pages?.contact;
   const content = contactPageData?.content || {};
+  const headerBadge = content.header?.badge || "Direct Export Division";
   const headerTitle = contactPageData?.h1 || content.header?.h1 || "Contact Arpran Industries – Your Natural Stone Partner";
   const headerSubtitle = contactPageData?.tagline || content.header?.subtitle || "Looking for premium natural stone slabs, granite, sandstone, quartzite, slate stone, or limestone? Get in touch with Arpran Industries for product enquiries, bulk orders, custom requirements, and international export solutions. Our team is ready to help you find the right natural stone for your architectural, commercial, and landscaping projects.";
+
+  const officesSection = content.offices_section || {
+    badge: "International Presence",
+    heading: "Headquarters & International Office",
+    description: "Direct communication with our quarry directors and logistics specialists."
+  };
+
+  const instantWa = content.instant_wa || {
+    title: "Instant WhatsApp Quotations",
+    description: "Send your project blueprints or required slab quantities directly to our director's desk for instant FOB Mundra / CIF port estimates.",
+    button_text: "Chat With Quarry Director"
+  };
+
+  const rfqForm = content.rfq_form || {
+    badge: "Direct Factory Submission",
+    title: "Request Stone Specification Quotation",
+    subtitle: "Fill in your project requirements below. Our commercial department will provide calibrated slab photos, laboratory test reports, and CIF freight pricing.",
+    button_text: "Submit Official Quotation Request",
+    trust_badge_1: "NDA Confidentiality Guaranteed",
+    trust_badge_2: "24-Hour Quotation Turnaround"
+  };
+
+  const DEFAULT_FAQS = [
+    {
+      question: "What is the standard container capacity for slabs?",
+      answer: "A 20ft heavy-duty ocean container holds approx 400 to 450 sqm of 20mm granite slabs, or approx 300 sqm of 30mm slabs, subject to the weight limits of the discharge port (usually 21 to 27 metric tons)."
+    },
+    {
+      question: "How are the slabs packaged for export?",
+      answer: "All slabs are loaded on certified ISPM-15 heat-treated fumigated wooden A-frames. Slabs are individually cushioned with foam sheets and strapped with heavy-gauge steel bands to prevent transit movement."
+    },
+    {
+      question: "Can we order mixed stone varieties in one container?",
+      answer: "Yes. We frequently pack mixed containers containing granite slabs, marble tiles, and flexible stone veneer crates together to maximize space utilization for project developers."
+    },
+    {
+      question: "What is the typical production and shipping lead time?",
+      answer: "Factory gangsaw cutting and finishing takes 10 to 18 days. Transit time from Mundra Port to destination ports is approximately 18 to 24 days."
+    }
+  ];
+
+  const faqsList = Array.isArray(content.faqs) && content.faqs.length > 0 ? content.faqs : DEFAULT_FAQS;
+  const faqsBadge = content.faqs_badge || "Frequently Asked Questions";
+  const faqsHeading = content.faqs_heading || "Stone Export & Logistics Information";
 
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [formData, setFormData] = useState({
@@ -67,7 +112,7 @@ export default function ContactPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-400 text-xs font-bold tracking-[0.2em] uppercase mb-3 shadow-2xs">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Direct Export Division</span>
+            <span>{headerBadge}</span>
           </div>
           <h1 className="text-2xl sm:text-4xl lg:text-[44px] font-serif font-normal text-white tracking-tight leading-[1.2]">
             {headerTitle}
@@ -89,13 +134,13 @@ export default function ContactPage() {
 
               <div>
                 <span className="text-xs font-bold uppercase tracking-widest text-[#0A4E9B] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
-                  International Presence
+                  {officesSection.badge}
                 </span>
                 <h2 className="text-2xl sm:text-3xl font-serif font-bold text-slate-900 mt-2">
-                  Headquarters & International Office
+                  {officesSection.heading}
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-600 mt-2">
-                  Direct communication with our quarry directors and logistics specialists.
+                  {officesSection.description}
                 </p>
               </div>
 
@@ -141,10 +186,10 @@ export default function ContactPage() {
               <div className="bg-gradient-to-br from-emerald-50 via-white to-blue-50/60 p-6 rounded-2xl text-slate-800 shadow-sm border border-emerald-200/90 space-y-3">
                 <div className="flex items-center gap-2">
                   <MessageSquare className="w-5 h-5 text-emerald-600" />
-                  <h4 className="font-serif font-medium text-base text-slate-900">Instant WhatsApp Quotations</h4>
+                  <h4 className="font-serif font-medium text-base text-slate-900">{instantWa.title}</h4>
                 </div>
                 <p className="text-xs text-slate-600 leading-relaxed font-normal">
-                  Send your project blueprints or required slab quantities directly to our director's desk for instant FOB Mundra / CIF port estimates.
+                  {instantWa.description}
                 </p>
                 <a
                   href={`https://wa.me/${(whatsapp || '919414068933').replace(/[^0-9]/g, '')}?text=Hello%20Arpran%20Industries,%20I%20would%20like%20to%20request%20a%20stone%20export%20quotation.`}
@@ -153,7 +198,7 @@ export default function ContactPage() {
                   className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-sm"
                 >
                   <MessageSquare className="w-4 h-4" />
-                  <span>Chat With Quarry Director</span>
+                  <span>{instantWa.button_text}</span>
                 </a>
               </div>
 
@@ -164,13 +209,13 @@ export default function ContactPage() {
               <div className="bg-white p-8 sm:p-10 rounded-3xl border border-slate-200 shadow-xl">
 
                 <span className="text-xs font-bold uppercase tracking-widest text-[#0A4E9B]">
-                  Direct Factory Submission
+                  {rfqForm.badge}
                 </span>
                 <h3 className="text-2xl font-serif font-bold text-slate-900 mt-1 mb-2">
-                  Request Stone Specification Quotation
+                  {rfqForm.title}
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-500 mb-8">
-                  Fill in your project requirements below. Our commercial department will provide calibrated slab photos, laboratory test reports, and CIF freight pricing.
+                  {rfqForm.subtitle}
                 </p>
 
                 {formSubmitted ? (
@@ -336,18 +381,18 @@ export default function ContactPage() {
 
                     <button
                       type="submit"
-                      className="w-full py-4 bg-[#0A4E9B] hover:bg-[#073b77] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group"
+                      className="w-full py-4 bg-[#0A4E9B] hover:bg-[#073b77] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group cursor-pointer"
                     >
                       <Send className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                      <span>Submit Official Quotation Request</span>
+                      <span>{rfqForm.button_text}</span>
                     </button>
 
                     <div className="flex items-center justify-center gap-6 text-[11px] text-slate-500 pt-2">
                       <span className="flex items-center gap-1.5">
-                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> NDA Confidentiality Guaranteed
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> {rfqForm.trust_badge_1}
                       </span>
                       <span className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-[#0A4E9B]" /> 24-Hour Quotation Turnaround
+                        <Clock className="w-3.5 h-3.5 text-[#0A4E9B]" /> {rfqForm.trust_badge_2}
                       </span>
                     </div>
 
@@ -368,53 +413,25 @@ export default function ContactPage() {
 
           <div className="text-center mb-8">
             <span className="text-xs font-bold uppercase tracking-widest text-[#0A4E9B]">
-              Frequently Asked Questions
+              {faqsBadge}
             </span>
             <h3 className="text-2xl sm:text-3xl font-serif font-bold text-slate-900 mt-1">
-              Stone Export & Logistics Information
+              {faqsHeading}
             </h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-slate-700">
-            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-              <h4 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                <HelpCircle className="w-4 h-4 text-[#0A4E9B]" />
-                What is the standard container capacity for slabs?
-              </h4>
-              <p className="text-slate-600 leading-relaxed">
-                A 20ft heavy-duty ocean container holds approx 400 to 450 sqm of 20mm granite slabs, or approx 300 sqm of 30mm slabs, subject to the weight limits of the discharge port (usually 21 to 27 metric tons).
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-              <h4 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                <HelpCircle className="w-4 h-4 text-[#0A4E9B]" />
-                How are the slabs packaged for export?
-              </h4>
-              <p className="text-slate-600 leading-relaxed">
-                All slabs are loaded on certified ISPM-15 heat-treated fumigated wooden A-frames. Slabs are individually cushioned with foam sheets and strapped with heavy-gauge steel bands to prevent transit movement.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-              <h4 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                <HelpCircle className="w-4 h-4 text-[#0A4E9B]" />
-                Can we order mixed stone varieties in one container?
-              </h4>
-              <p className="text-slate-600 leading-relaxed">
-                Yes. We frequently pack mixed containers containing granite slabs, marble tiles, and flexible stone veneer crates together to maximize space utilization for project developers.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-              <h4 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                <HelpCircle className="w-4 h-4 text-[#0A4E9B]" />
-                What is the typical production and shipping lead time?
-              </h4>
-              <p className="text-slate-600 leading-relaxed">
-                Factory gangsaw cutting and finishing takes 10 to 18 days. Transit time from Mundra Port to destination ports is approximately 18 to 24 days.
-              </p>
-            </div>
+            {faqsList.map((faq, index) => (
+              <div key={index} className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <h4 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                  <HelpCircle className="w-4 h-4 text-[#0A4E9B] shrink-0" />
+                  {faq.question}
+                </h4>
+                <p className="text-slate-600 leading-relaxed">
+                  {faq.answer}
+                </p>
+              </div>
+            ))}
           </div>
 
         </div>

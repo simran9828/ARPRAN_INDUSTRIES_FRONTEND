@@ -92,7 +92,7 @@ export default function BlogPage({ onOpenBlog }) {
   return (
     <div>
       <SEO 
-        title="Architectural Stone Journal & Material Insights"
+        title={blogPageData?.title || "Architectural Stone Journal & Material Insights"}
         description="Explore technical stone articles, architectural trend forecasts, and surface finishing guides by ARPRAN Industries. Written for architects, contractors, and luxury homebuilders."
         keywords="natural stone blog, Indian granite guides, marble selection tips, flexible stone veneer tutorial, stone paving specification"
         canonicalPath="/blog"
@@ -107,7 +107,7 @@ export default function BlogPage({ onOpenBlog }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-400 text-xs font-bold tracking-[0.2em] uppercase mb-3 shadow-2xs">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Architectural Insights & Journal</span>
+            <span>{blogPageData?.content?.badge || "Architectural Insights & Journal"}</span>
           </div>
           <h1 className="text-2xl sm:text-4xl lg:text-[44px] font-serif font-normal text-white tracking-tight leading-[1.2]">
             {headerTitle}
