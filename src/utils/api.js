@@ -1,10 +1,6 @@
 // Centralized API Base URL configuration
 // Base URL for ARPRAN Industries backend
-export const API_BASE_URL = (
-  import.meta.env.DEV
-    ? ''
-    : (import.meta.env.VITE_API_URL || 'https://arpran-industries-backend.onrender.com')
-).replace(/\/+$/, '');
+export const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
 
 /**
  * Returns the full API URL based on API_BASE_URL
