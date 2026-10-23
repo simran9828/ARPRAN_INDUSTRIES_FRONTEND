@@ -1,0 +1,6 @@
+deployment:
+  tasks:
+    - npm ci
+    - npm run build
+    - export DEPLOYPATH=/home/arpranindustries/public_html/
+    - /bin/cp -R dist/. $DEPLOYPATH
