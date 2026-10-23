@@ -397,16 +397,10 @@ export default function HomePage({ onOpenProduct, onOpenBlog }) {
                 <span>{collPrev.badge || "Certified Natural Stone Pavilion"}</span>
               </div>
               <h2 className="text-3xl sm:text-4xl lg:text-[40px] font-medium text-slate-900 tracking-tight leading-tight">
-                {collPrev.heading ? (
-                  <span>{collPrev.heading}</span>
-                ) : (
-                  <>
-                     Comprehensive{' '}
-                    <span className="text-[#B89047] font-semibold">
-                      Stone Collections
-                    </span>
-                  </>
-                )}
+                Our Natural{' '}
+                <span className="text-[#B89047] font-semibold">
+                  Stone Collections
+                </span>
               </h2>
               <p className="text-sm sm:text-base text-slate-600 max-w-2xl leading-relaxed font-normal">
                 {collPrev.description || "Curated export-grade varieties of Granite, Makrana Marble, Sandstone, Slate, Quartzite, Limestone, Natural Stone Veneers, Paving & Artifacts exported worldwide."}
