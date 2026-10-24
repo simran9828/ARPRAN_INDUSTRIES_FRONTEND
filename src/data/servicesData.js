@@ -687,5 +687,5 @@ export const SERVICES_LIST = [
 export function GET_SERVICE_BY_SLUG(slug) {
   if (!slug) return null;
   const cleanSlug = slug.toLowerCase().trim();
-  return SERVICES_LIST.find(s => s.slug.toLowerCase() === cleanSlug || s.id?.toLowerCase() === cleanSlug);
+  return SERVICES_LIST.find(s => s.slug.toLowerCase() === cleanSlug || s.id?.toLowerCase() === cleanSlug) || null;
 }

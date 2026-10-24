@@ -29,34 +29,33 @@ import SignupPage from './pages/SignupPage';
 import LoginPage from './pages/LoginPage';
 import UserDashboardPage from './pages/UserDashboardPage';
 import UserProtectedRoute from './components/UserProtectedRoute';
+import NotFoundPage from './components/NotFoundPage';
+import { getRouteRobotsDirective, resolveUnmatchedRoute } from './utils/seoRouting';
 
 /**
  * DynamicRedirectOrHome helper component
- * Matches incoming path against active CMS redirect rules before falling back to HomePage
+ * Matches incoming paths against active CMS redirect rules before showing a not-found page.
  */
-function DynamicRedirectOrHome({ onOpenProduct, onOpenBlog }) {
+function DynamicRedirectOrHome() {
   const location = useLocation();
   const cms = useCMS();
   const redirects = cms?.redirects || [];
 
-  const matched = redirects.find(
-    (r) => r.source_path && r.source_path.toLowerCase() === location.pathname.toLowerCase()
-  );
+  const route = resolveUnmatchedRoute(location.pathname, redirects);
 
-  if (matched && matched.target_url) {
-    if (matched.target_url.startsWith('http')) {
-      window.location.href = matched.target_url;
+  if (route.type === 'cms-redirect') {
+    if (route.external) {
+      window.location.href = route.targetUrl;
       return null;
     }
-    return <Navigate to={matched.target_url} replace />;
+    return <Navigate to={route.targetUrl} replace />;
   }
 
-  return (
-    <HomePage
-      onOpenProduct={onOpenProduct}
-      onOpenBlog={onOpenBlog}
-    />
-  );
+  if (route.type === 'legacy-service') {
+    return <ServiceDetailPage serviceSlugOverride={route.serviceSlug} />;
+  }
+
+  return <NotFoundPage />;
 }
 
 /**
@@ -90,6 +89,17 @@ function AppContent() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedBlog, setSelectedBlog] = useState(null);
   const location = useLocation();
+  const { services: cmsServices } = useCMS();
+
+  useEffect(() => {
+    let robots = document.querySelector('meta[name="robots"]');
+    if (!robots) {
+      robots = document.createElement('meta');
+      robots.setAttribute('name', 'robots');
+      document.head.appendChild(robots);
+    }
+    robots.setAttribute('content', getRouteRobotsDirective(location.pathname, cmsServices));
+  }, [location.pathname, cmsServices]);
 
   const isAdminRoute = location.pathname.startsWith('/admin');
 
@@ -201,10 +211,7 @@ function AppContent() {
           <Route
             path="*"
             element={
-              <DynamicRedirectOrHome
-                onOpenProduct={(prod) => setSelectedProduct(prod)}
-                onOpenBlog={(blog) => setSelectedBlog(blog)}
-              />
+              <DynamicRedirectOrHome />
             }
           />
         </Routes>

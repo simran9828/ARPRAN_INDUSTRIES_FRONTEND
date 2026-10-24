@@ -229,7 +229,7 @@ export default function AboutPage() {
 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <h1 className="text-3xl sm:text-4xl lg:text-[44px] font-serif font-normal text-white tracking-tight leading-[1.2] mb-4">
-            {about?.content?.mission?.heading || "Our Mission"}
+            {h1 || "About ARPRAN Industries"}
           </h1>
           
         </div>

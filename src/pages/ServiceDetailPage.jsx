@@ -11,23 +11,25 @@ import { COMPANY_INFO } from '../data/stoneData';
 import SEO from '../components/SEO';
 import { useCMS } from '../context/CMSContext';
 import PremiumQuoteCard from '../components/PremiumQuoteCard';
+import NotFoundPage from '../components/NotFoundPage';
 
-export default function ServiceDetailPage({ onOpenProduct }) {
+export default function ServiceDetailPage({ onOpenProduct, serviceSlugOverride }) {
   const { categorySlug, serviceSlug } = useParams();
   const navigate = useNavigate();
   const { catalogMap, services: cmsServices } = useCMS();
 
   // Find active category / service
-  const activeSlug = categorySlug || serviceSlug;
+  const activeSlug = serviceSlugOverride || categorySlug || serviceSlug;
   const service = useMemo(() => {
     if (cmsServices && cmsServices[activeSlug]) {
       return cmsServices[activeSlug];
     }
-    return GET_SERVICE_BY_SLUG(activeSlug) || SERVICES_LIST[0];
+    return GET_SERVICE_BY_SLUG(activeSlug);
   }, [activeSlug, cmsServices]);
 
   // Products belonging to this service category
   const categoryProducts = useMemo(() => {
+    if (!service) return [];
     if (catalogMap && catalogMap[service.catalogCategory]) {
       return catalogMap[service.catalogCategory];
     }
@@ -53,6 +55,10 @@ export default function ServiceDetailPage({ onOpenProduct }) {
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [activeFaq, setActiveFaq] = useState(0);
+
+  if (!service) {
+    return <NotFoundPage />;
+  }
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
@@ -96,7 +102,7 @@ export default function ServiceDetailPage({ onOpenProduct }) {
   return (
     <div className="bg-slate-50 min-h-screen text-slate-800">
       <SEO
-        title={`${service.h1} | ARPRAN Industries`}
+        title={service.h1}
         description={service.heroDescription}
         keywords={`${service.title}, ${service.catalogCategory}, Indian stone export, ${service.h1}, Jaipur natural stone supplier`}
         canonicalPath={`/products/${service.slug}`}

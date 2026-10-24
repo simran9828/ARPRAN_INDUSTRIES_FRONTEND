@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useCMS } from '../context/CMSContext';
+import { findExactPageSeoRecord, getCanonicalUrl } from '../utils/seoMetadata';
 
 /**
  * Dynamic SEO Component
@@ -18,17 +19,7 @@ export default function SEO({
 
   useEffect(() => {
     // 1. Resolve Admin CMS SEO configuration for this page, if present
-    const cleanCanonical = (!canonicalPath || canonicalPath === '/') ? '/' : canonicalPath.replace(/\/$/, '');
-    const pageKey = cleanCanonical === '/' ? 'home' : cleanCanonical.replace(/^\//, '').split('/')[0];
-
-    const cmsSeo = seoSettings?.find(s =>
-      s.page_route === cleanCanonical ||
-      (cleanCanonical === '/' && (s.page_route === '/' || s.page_route === 'home')) ||
-      s.page_route === canonicalPath ||
-      s.page_route === `/${pageKey}` ||
-      s.page_identifier === cleanCanonical ||
-      s.page_identifier === pageKey
-    );
+    const cmsSeo = findExactPageSeoRecord(seoSettings, canonicalPath);
 
     const activeTitle = cmsSeo?.meta_title || title;
     const activeDescription = cmsSeo?.meta_description || description;
@@ -39,7 +30,10 @@ export default function SEO({
 
     const siteName = settings?.site_name || 'ARPRAN Industries';
     const baseTitle = `${siteName} | Premium Natural Stone, Granite & Marble`;
-    document.title = activeTitle ? `${activeTitle} | ${siteName}` : baseTitle;
+    const titleWithSiteName = activeTitle?.toLowerCase().endsWith(`| ${siteName}`.toLowerCase())
+      ? activeTitle
+      : `${activeTitle} | ${siteName}`;
+    document.title = activeTitle ? titleWithSiteName : baseTitle;
 
     // Helper to set or create meta tag
     const setMetaTag = (nameAttr, nameVal, content) => {
@@ -59,8 +53,6 @@ export default function SEO({
       setMetaTag('name', 'keywords', activeKeywords);
     }
     setMetaTag('name', 'author', `${siteName} Pvt. Ltd.`);
-    setMetaTag('name', 'robots', 'index, follow');
-
     // 3. Open Graph (Facebook, WhatsApp, LinkedIn)
     setMetaTag('property', 'og:title', activeOgTitle ? `${activeOgTitle} | ${siteName}` : baseTitle);
     setMetaTag('property', 'og:description', activeOgDescription);
@@ -87,7 +79,7 @@ export default function SEO({
       canonical.setAttribute('rel', 'canonical');
       document.head.appendChild(canonical);
     }
-    canonical.setAttribute('href', cmsSeo?.canonical_url || `${window.location.origin}${canonicalPath}`);
+    canonical.setAttribute('href', getCanonicalUrl(canonicalPath, cmsSeo));
 
     // Scroll to top upon page navigation
     window.scrollTo({ top: 0, behavior: 'smooth' });

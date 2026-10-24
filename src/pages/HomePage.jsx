@@ -274,9 +274,9 @@ export default function HomePage({ onOpenProduct, onOpenBlog }) {
               </div>
 
               {/* Main Headline with Clean Modern Sans-Serif Styling */}
-              <h2 className="text-3xl sm:text-4xl lg:text-[40px] font-medium text-slate-900 leading-[1.2] tracking-tight">
+              <h1 className="text-3xl sm:text-4xl lg:text-[40px] font-medium text-slate-900 leading-[1.2] tracking-tight">
                 {activeAboutHeading}
-              </h2>
+              </h1>
 
 
               {/* Story Narrative */}

@@ -8,6 +8,7 @@ import CATALOG_DATA from '../data/catalog.json';
 import { COMPANY_INFO } from '../data/stoneData';
 import SEO from '../components/SEO';
 import { useCMS } from '../context/CMSContext';
+import { getServiceSlugForCatalogCategory } from '../utils/seoRouting';
 
 const COLOR_SHADES = [
   { id: 'all', label: 'All Shades', dot: 'bg-gradient-to-r from-slate-400 to-slate-700' },
@@ -20,7 +21,7 @@ const COLOR_SHADES = [
 ];
 
 export default function ProductsPage({ onOpenProduct }) {
-  const { catalogMap, pages } = useCMS();
+  const { catalogMap, pages, services: cmsServices } = useCMS();
   const productsPageData = pages?.products;
   const pageContent = productsPageData?.content || {};
   const headerBadge = pageContent.badge || "Architectural Stone Catalog";
@@ -48,6 +49,8 @@ export default function ProductsPage({ onOpenProduct }) {
   const [searchTerm, setSearchTerm] = useState(paramSearch || '');
   const [selectedColorFilter, setSelectedColorFilter] = useState('all');
   const [visibleItemsCount, setVisibleItemsCount] = useState(16);
+
+  const dedicatedCategorySlug = getServiceSlugForCatalogCategory(activeTab, cmsServices);
 
   // Sync with URL parameters if changed from navbar
   useEffect(() => {
@@ -186,7 +189,7 @@ export default function ProductsPage({ onOpenProduct }) {
           </div>
 
           {/* Dedicated Category Page Link Banner */}
-          {!searchTerm && (
+          {!searchTerm && dedicatedCategorySlug && (
             <div className="bg-gradient-to-r from-blue-50/80 via-white to-blue-50/80 border border-blue-200/90 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
               <div className="flex items-center gap-3.5">
                 <div className="w-10 h-10 rounded-xl bg-blue-100 text-[#0A4E9B] flex items-center justify-center shrink-0">
@@ -202,7 +205,7 @@ export default function ProductsPage({ onOpenProduct }) {
                 </div>
               </div>
               <Link
-                to={`/products/${activeTab.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`}
+                to={`/products/${dedicatedCategorySlug}`}
                 className="px-5 py-2.5 rounded-xl bg-[#0A4E9B] hover:bg-[#083E7A] text-white font-bold text-xs uppercase tracking-wider transition shrink-0 flex items-center gap-1.5 shadow-md group/slink"
               >
                 <span>Open Dedicated {activeTab} Page</span>
