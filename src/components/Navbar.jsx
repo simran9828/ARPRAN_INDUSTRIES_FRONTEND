@@ -187,6 +187,10 @@ export default function Navbar() {
                 Blog
               </NavLink>
 
+              <NavLink to="/international-exports" className={navLinkClass}>
+                Export Markets
+              </NavLink>
+
               <NavLink to="/contact" className={navLinkClass}>
                 Contact Us
               </NavLink>
@@ -295,6 +299,14 @@ export default function Navbar() {
               className={({ isActive }) => `block py-2 text-sm font-semibold ${isActive ? 'text-amber-400 font-bold' : 'text-white'}`}
             >
               Blog
+            </NavLink>
+
+            <NavLink
+              to="/international-exports"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={({ isActive }) => `block py-2 text-sm font-semibold ${isActive ? 'text-amber-400 font-bold' : 'text-white'}`}
+            >
+              Export Markets
             </NavLink>
 
             <NavLink

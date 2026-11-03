@@ -1,4 +1,9 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /login
+Disallow: /signup
+Disallow: /dashboard
 
 Sitemap: https://arpranindustries.com/sitemap.xml

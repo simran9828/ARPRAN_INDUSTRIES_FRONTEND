@@ -18,6 +18,7 @@ export default function Footer() {
     { title: 'HOME', url: '/' },
     { title: 'ABOUT US', url: '/about' },
     { title: 'PRODUCTS', url: '/products' },
+    { title: 'EXPORT MARKETS', url: '/international-exports' },
     { title: 'BLOG', url: '/blog' },
     { title: 'CONTACT US', url: '/contact' }
   ];

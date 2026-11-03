@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { GET_SERVICE_BY_SLUG, SERVICES_LIST } from '../src/data/servicesData.js';
 import { getRouteRobotsDirective, getServiceSlugForCatalogCategory, resolveLegacyProductServiceSlug, resolveUnmatchedRoute } from '../src/utils/seoRouting.js';
-import { findExactPageSeoRecord, getCanonicalUrl } from '../src/utils/seoMetadata.js';
+import { findExactPageSeoRecord, getCanonicalUrl, getProductCategoryBreadcrumbs } from '../src/utils/seoMetadata.js';
 
 test('every configured product category resolves to a service', () => {
   for (const service of SERVICES_LIST) {
@@ -58,6 +58,28 @@ test('unmapped legacy paths remain unresolved rather than guessing a category', 
   assert.equal(resolveLegacyProductServiceSlug('/unrecognized-product/'), null);
 });
 
+test('unrelated numeric product-like URLs never resolve to stone content', () => {
+  for (const pathname of ['/m55936911180', '/m844888027433', '/jp/240039158.html']) {
+    assert.deepEqual(resolveUnmatchedRoute(pathname), { type: 'not-found' });
+    assert.equal(getRouteRobotsDirective(pathname), 'noindex, nofollow');
+  }
+});
+
+test('CMS redirects reject script and protocol-relative targets', () => {
+  for (const targetUrl of ['javascript:alert(1)', '//attacker.example/path', 'data:text/html,spam']) {
+    assert.deepEqual(resolveUnmatchedRoute('/old-page', [
+      { source_path: '/old-page', target_url: targetUrl }
+    ]), { type: 'not-found' });
+  }
+  assert.deepEqual(resolveUnmatchedRoute('/old-page', [
+    { source_path: '/old-page', target_url: 'https://arpranindustries.com/contact' }
+  ]), {
+    type: 'cms-redirect',
+    targetUrl: 'https://arpranindustries.com/contact',
+    external: true
+  });
+});
+
 test('private routes stay noindex and public routes stay indexable', () => {
   for (const pathname of ['/login', '/signup', '/dashboard', '/admin', '/admin/login', '/admin/products']) {
     assert.equal(getRouteRobotsDirective(pathname), 'noindex, nofollow');
@@ -103,6 +125,16 @@ test('category canonical uses an exact category CMS record when supplied', () =>
 
   assert.equal(exactSeo, categorySeo[0]);
   assert.equal(getCanonicalUrl('/products/granite-series', exactSeo), categorySeo[0].canonical_url);
+});
+
+test('product category breadcrumbs use the canonical business URLs', () => {
+  const breadcrumbs = getProductCategoryBreadcrumbs('/products/granite-series', 'Granite Slabs');
+  assert.deepEqual(breadcrumbs.itemListElement.map(({ name, item }) => ({ name, item })), [
+    { name: 'Home', item: 'https://arpranindustries.com/' },
+    { name: 'Products', item: 'https://arpranindustries.com/products' },
+    { name: 'Granite Slabs', item: 'https://arpranindustries.com/products/granite-series' }
+  ]);
+  assert.equal(getProductCategoryBreadcrumbs('/m55936911180', 'Unrelated page'), null);
 });
 
 test('sitemap URL list exactly matches the configured public canonical routes', () => {

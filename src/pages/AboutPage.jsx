@@ -8,37 +8,47 @@ import {
 import { COMPANY_INFO } from '../data/stoneData';
 import SEO from '../components/SEO';
 import { useCMS } from '../context/CMSContext';
+import { getImageUrl } from '../utils/imageUrl';
 
 export default function AboutPage() {
   const { about, settings } = useCMS();
   const [selectedProcess, setSelectedProcess] = useState(null);
 
   const siteName = settings?.site_name || COMPANY_INFO.name;
-  const h1 = about?.h1 || "Quality is not just a standard; it is a commitment to delivering natural stone that adds lasting value to every space.";
+  const h1 = "About";
   const tagline = about?.tagline || "To provide premium natural stone solutions that inspire architects, designers, builders, and customers to create beautiful, durable, and distinctive spaces.";
 
   const genesis = about?.content?.genesis || {};
   const badge = genesis.badge || "About Us";
-  const genesisHeading = genesis.heading || "Quality is not just a standard; it is a commitment to delivering natural stone that adds lasting value to every space.";
-  const paragraphs = genesis.paragraphs || [
+  const genesisHeading = (genesis.heading && !genesis.heading.toLowerCase().includes("quality is not just"))
+    ? genesis.heading
+    : "Dedicated to Craftsmanship, Precision & Natural Stone Excellence";
+  const paragraphs = Array.isArray(genesis.paragraphs) && genesis.paragraphs.length > 0
+    ? genesis.paragraphs
+    : [
     "At Arpran Industries, we are committed to offering premium natural stone that combines quality, durability, natural beauty, and timeless character. Our carefully selected range of natural stones is designed to meet the diverse requirements of modern architecture, interior design, and landscaping.",
     "From elegant architectural surfaces to distinctive outdoor spaces, our natural stones bring unique textures, patterns, and natural variations to every project. We focus on maintaining consistent quality and delivering products that meet the expectations of architects, designers, builders, and clients worldwide.",
     "Whether for residential, commercial, architectural, or landscaping applications, Arpran Industries strives to provide natural stone solutions that combine aesthetic appeal with long-lasting performance."
   ];
 
-  const stats = genesis.stats || [
+  const stats = Array.isArray(genesis.stats) && genesis.stats.length > 0
+    ? genesis.stats
+    : [
     { number: "100%", label: "Export Oriented Unit" },
     { number: "25+ Nations", label: "International Shipments" },
     { number: "10+ Yrs", label: "Quarrying Heritage" }
   ];
 
   const genesisImage = genesis.image || "/images/about-stone-samples.jpg";
-  const pillars = about?.content?.pillars || [
+  const defaultPillars = [
     {
       title: "Material",
       description: "Carefully selected natural stone with a strong focus on quality and durability."
     },
-    
+    {
+      title: "Stone Processing",
+      description: "Careful cutting, finishing, and inspection to prepare natural stone for project requirements."
+    },
     {
       title: "Delivery",
       description: "Reliable and timely delivery to meet project requirements efficiently."
@@ -48,6 +58,20 @@ export default function AboutPage() {
       description: "Building long-term relationships through trust, quality, and dependable service."
     }
   ];
+  const configuredPillars = Array.isArray(about?.content?.pillars)
+    ? about.content.pillars
+    : [];
+  const configuredPillarsByTitle = new Map(
+    configuredPillars.map((pillar) => [pillar.title?.toLowerCase(), pillar])
+  );
+  const pillars = [
+    ...defaultPillars.map((fallback) =>
+      configuredPillarsByTitle.get(fallback.title.toLowerCase()) || fallback
+    ),
+    ...configuredPillars.filter((pillar) =>
+      !defaultPillars.some((fallback) => fallback.title.toLowerCase() === pillar.title?.toLowerCase())
+    )
+  ].slice(0, 4);
 
   const DEFAULT_WORK_PROCESS = [
     {
@@ -228,10 +252,9 @@ export default function AboutPage() {
         <div className="absolute -top-24 right-10 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <h1 className="text-3xl sm:text-4xl lg:text-[44px] font-serif font-normal text-white tracking-tight leading-[1.2] mb-4">
-            {h1 || "About ARPRAN Industries"}
+          <h1 className="text-3xl sm:text-4xl lg:text-[44px] font-serif font-bold text-white tracking-tight leading-[1.2]">
+            {h1}
           </h1>
-          
         </div>
       </section>
 
@@ -264,9 +287,11 @@ export default function AboutPage() {
               <div className="group relative rounded-2xl overflow-hidden shadow-[0_12px_40px_rgba(0,0,0,0.12)] border-2 border-slate-200/90 bg-white transition-all duration-300 hover:shadow-2xl hover:border-[#B89047]">
                 <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
                   <img
-                    src={genesisImage}
+                    src={getImageUrl(genesisImage)}
                     alt={`${siteName} Curated Indian Natural Stone Palette`}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
               </div>
@@ -294,8 +319,11 @@ export default function AboutPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {pillars.map((pillar, idx) => {
-              const icons = [Compass, Factory, ShieldCheck, Truck];
-              const IconComp = icons[idx % icons.length];
+              const title = pillar.title?.toLowerCase() || "";
+              const IconComp = title.includes("process") ? Factory
+                : title.includes("deliver") ? Truck
+                  : title.includes("relationship") ? ShieldCheck
+                    : Compass;
               return (
                 <div key={idx} className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg transition">
                   <div className="w-12 h-12 rounded-xl bg-blue-50 text-[#0A4E9B] flex items-center justify-center mb-6">
@@ -340,9 +368,11 @@ export default function AboutPage() {
                 className={`group relative rounded-xl overflow-hidden border border-slate-200/90 bg-slate-900 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer h-44 sm:h-48 lg:h-full ${item.gridClass}`}
               >
                 <img
-                  src={item.image}
+                  src={getImageUrl(item.image)}
                   alt={item.title}
                   className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10 group-hover:via-black/50 transition-colors duration-300" />
 
@@ -383,9 +413,11 @@ export default function AboutPage() {
                 className="group relative rounded-xl overflow-hidden border border-slate-200/90 bg-slate-900 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer h-48 sm:h-52 lg:h-[190px]"
               >
                 <img
-                  src={item.image}
+                  src={getImageUrl(item.image)}
                   alt={item.title}
                   className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10 group-hover:via-black/50 transition-colors duration-300" />
 
@@ -442,7 +474,7 @@ export default function AboutPage() {
 
             <div className="relative h-64 sm:h-80 w-full overflow-hidden">
               <img
-                src={selectedProcess.image}
+                src={getImageUrl(selectedProcess.image)}
                 alt={selectedProcess.title}
                 className="w-full h-full object-cover"
               />

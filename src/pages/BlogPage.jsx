@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Calendar, Clock, ArrowRight, BookOpen, Sparkles } from 'lucide-react';
 import SEO from '../components/SEO';
 import { useCMS } from '../context/CMSContext';
+import { getImageUrl } from '../utils/imageUrl';
 
 const ALL_BLOGS = [
   {
@@ -149,10 +150,11 @@ export default function BlogPage({ onOpenBlog }) {
                 <div>
                   <div className="h-52 w-full aspect-[16/10] overflow-hidden bg-slate-100 relative">
                     <img
-                      src={article.image}
+                      src={getImageUrl(article.image)}
                       alt={article.title}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       loading="lazy"
+                      decoding="async"
                     />
                     <div className="absolute top-3 left-3 bg-white/92 text-slate-800 text-[10px] font-bold px-2.5 py-1 rounded-full border border-slate-200/80 shadow-xs backdrop-blur-sm">
                       {article.category}

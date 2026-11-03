@@ -12,6 +12,7 @@ import SEO from '../components/SEO';
 import { useCMS } from '../context/CMSContext';
 import PremiumQuoteCard from '../components/PremiumQuoteCard';
 import NotFoundPage from '../components/NotFoundPage';
+import { getImageUrl } from '../utils/imageUrl';
 
 export default function ServiceDetailPage({ onOpenProduct, serviceSlugOverride }) {
   const { categorySlug, serviceSlug } = useParams();
@@ -94,7 +95,7 @@ export default function ServiceDetailPage({ onOpenProduct, serviceSlugOverride }
   // Robust multi-level fallback cascade for category hero visual
   const firstStoneImage = categoryProducts && categoryProducts[0]?.image;
   const activeHeroImage =
-    CATEGORY_HERO_MAP[service.slug] ||
+    getImageUrl(CATEGORY_HERO_MAP[service.slug]) ||
     service.heroImage ||
     firstStoneImage ||
     '/images/hero/slide-1.jpg';
@@ -117,6 +118,9 @@ export default function ServiceDetailPage({ onOpenProduct, serviceSlugOverride }
           src={activeHeroImage}
           alt={`${service.title} - ARPRAN Industries`}
           className="w-full h-full object-cover object-center"
+          loading="eager"
+          fetchPriority="high"
+          decoding="async"
           onError={(e) => {
             if (firstStoneImage && e.target.src !== firstStoneImage) {
               e.target.src = firstStoneImage;
@@ -168,9 +172,11 @@ export default function ServiceDetailPage({ onOpenProduct, serviceSlugOverride }
                     >
                       <div className="h-20 sm:h-24 w-full overflow-hidden bg-slate-900 relative">
                         <img
-                          src={`${st.image}?v=3`}
+                          src={getImageUrl(st.image)}
                           alt={st.name}
                           className="w-full h-full object-cover group-hover/thumb:scale-105 transition-transform"
+                          loading="lazy"
+                          decoding="async"
                           onError={(e) => { e.target.src = '/images/finish-polished.jpg'; }}
                         />
                       </div>
@@ -388,7 +394,7 @@ export default function ServiceDetailPage({ onOpenProduct, serviceSlugOverride }
                       className="aspect-16/10 w-full overflow-hidden bg-slate-100 relative cursor-pointer"
                     >
                       <img
-                        src={`${stone.image}?v=4`}
+                        src={getImageUrl(stone.image)}
                         alt={`${stone.name} - ${service.title}`}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         loading="lazy"

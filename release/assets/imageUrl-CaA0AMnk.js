@@ -1,0 +1,1 @@
+const e="20261103";function o(t){if(typeof t!="string"||!t.startsWith("/images/"))return t;const[n,...r]=t.split("?"),s=new URLSearchParams(r.join("?"));return s.set("v",e),`${n}?${s.toString()}`}export{o as g};

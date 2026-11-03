@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { X, CheckCircle2, MessageSquare, Download, ShieldCheck, Sparkles, ArrowRight } from 'lucide-react';
 import { COMPANY_INFO } from '../data/stoneData';
 import { useCMS } from '../context/CMSContext';
+import { getImageUrl } from '../utils/imageUrl';
 
 export default function ProductModal({ product, onClose }) {
   const { settings } = useCMS();
@@ -38,9 +39,10 @@ export default function ProductModal({ product, onClose }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
             <div className="relative aspect-16/10 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shadow-inner group">
               <img
-                src={`${product.image}?v=4`}
+                src={getImageUrl(product.image)}
                 alt={product.name}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                decoding="async"
                 onError={(e) => {
                   e.target.src = '/logo.png';
                 }}

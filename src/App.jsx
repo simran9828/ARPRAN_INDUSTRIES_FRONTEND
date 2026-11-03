@@ -1,33 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { lazy, Suspense, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation, Navigate, useParams } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import ChatBot from './components/ChatBot';
 import WhatsAppButton from './components/WhatsAppButton';
-import ProductModal from './components/ProductModal';
-import BlogModal from './components/BlogModal';
+const ChatBot = lazy(() => import('./components/ChatBot'));
+const ProductModal = lazy(() => import('./components/ProductModal'));
+const BlogModal = lazy(() => import('./components/BlogModal'));
 
 // Context Providers
 import { AuthProvider } from './context/AuthContext';
 import { CMSProvider, useCMS } from './context/CMSContext';
 
 // Pages
-import HomePage from './pages/HomePage';
-import AboutPage from './pages/AboutPage';
-import ProductsPage from './pages/ProductsPage';
-import BlogPage from './pages/BlogPage';
-import ContactPage from './pages/ContactPage';
-import ServiceDetailPage from './pages/ServiceDetailPage';
+const HomePage = lazy(() => import('./pages/HomePage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
+const ProductsPage = lazy(() => import('./pages/ProductsPage'));
+const BlogPage = lazy(() => import('./pages/BlogPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
+const ExportMarketsPage = lazy(() => import('./pages/ExportMarketsPage'));
+const LocalizedExportPage = lazy(() => import('./pages/LocalizedExportPage'));
+const ServiceDetailPage = lazy(() => import('./pages/ServiceDetailPage'));
 
 // Admin CMS Pages & Route Guard
-import AdminLogin from './pages/admin/AdminLogin';
-import AdminLayout from './pages/admin/AdminLayout';
+const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'));
+const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'));
 import ProtectedRoute from './components/admin/ProtectedRoute';
 
 // Client Auth & Dashboard Pages
-import SignupPage from './pages/SignupPage';
-import LoginPage from './pages/LoginPage';
-import UserDashboardPage from './pages/UserDashboardPage';
+const SignupPage = lazy(() => import('./pages/SignupPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const UserDashboardPage = lazy(() => import('./pages/UserDashboardPage'));
 import UserProtectedRoute from './components/UserProtectedRoute';
 import NotFoundPage from './components/NotFoundPage';
 import { getRouteRobotsDirective, resolveUnmatchedRoute } from './utils/seoRouting';
@@ -72,11 +74,18 @@ function ServiceSlugRedirect() {
  * Automatically scrolls window to top upon route change
  */
 function ScrollToTop() {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
 
   useEffect(() => {
+    if (hash) {
+      const el = document.querySelector(hash);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+    }
     window.scrollTo(0, 0);
-  }, [pathname]);
+  }, [pathname, hash]);
 
   return null;
 }
@@ -111,6 +120,7 @@ function AppContent() {
 
       {/* Routes */}
       <main className="flex-1">
+        <Suspense fallback={<div className="min-h-[50vh]" aria-label="Loading page" />}>
         <Routes>
           {/* Public Website Routes */}
           <Route
@@ -149,6 +159,14 @@ function AppContent() {
           <Route
             path="/contact"
             element={<ContactPage />}
+          />
+          <Route
+            path="/international-exports"
+            element={<ExportMarketsPage />}
+          />
+          <Route
+            path="/exports/:marketSlug"
+            element={<LocalizedExportPage />}
           />
           <Route
             path="/products/:categorySlug"
@@ -215,31 +233,34 @@ function AppContent() {
             }
           />
         </Routes>
+        </Suspense>
       </main>
 
       {/* Universal Footer & Floating AI Concierge / WhatsApp (Public only) */}
       {!isAdminRoute && (
         <>
           <Footer />
-          <ChatBot />
+          <Suspense fallback={null}><ChatBot /></Suspense>
           <WhatsAppButton />
         </>
       )}
 
       {/* Global Modals */}
-      {selectedProduct && (
-        <ProductModal
-          product={selectedProduct}
-          onClose={() => setSelectedProduct(null)}
-        />
-      )}
+      <Suspense fallback={null}>
+        {selectedProduct && (
+          <ProductModal
+            product={selectedProduct}
+            onClose={() => setSelectedProduct(null)}
+          />
+        )}
 
-      {selectedBlog && (
-        <BlogModal
-          blog={selectedBlog}
-          onClose={() => setSelectedBlog(null)}
-        />
-      )}
+        {selectedBlog && (
+          <BlogModal
+            blog={selectedBlog}
+            onClose={() => setSelectedBlog(null)}
+          />
+        )}
+      </Suspense>
 
     </div>
   );

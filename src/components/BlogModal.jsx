@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Calendar, Clock, BookOpen, CheckCircle2, HelpCircle, ChevronDown, Sparkles } from 'lucide-react';
 import FormattedArticleContent, { renderInline } from './FormattedArticleContent';
+import { getImageUrl } from '../utils/imageUrl';
 
 export default function BlogModal({ blog, onClose }) {
   const [activeFaq, setActiveFaq] = useState(0);
@@ -44,7 +45,7 @@ export default function BlogModal({ blog, onClose }) {
 
           <div className="aspect-16/9 rounded-xl sm:rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shadow-sm relative">
             <img
-              src={blog.image}
+              src={getImageUrl(blog.image)}
               alt={blog.alt_text || blog.title}
               className="w-full h-full object-cover"
               onError={(e) => { e.target.src = '/images/blog-granite.jpg'; }}

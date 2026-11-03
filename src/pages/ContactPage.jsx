@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   Phone, Mail, MapPin, MessageSquare, Send, CheckCircle2,
   Globe2, ShieldCheck, Download, FileText, Clock, HelpCircle, Sparkles
@@ -9,6 +9,7 @@ import SEO from '../components/SEO';
 import { useCMS } from '../context/CMSContext';
 
 export default function ContactPage() {
+  const [searchParams] = useSearchParams();
   const { settings, pages } = useCMS();
   const contactPageData = pages?.contact;
   const content = contactPageData?.content || {};
@@ -72,6 +73,13 @@ export default function ContactPage() {
     finish: 'Polished',
     message: ''
   });
+
+  useEffect(() => {
+    const destinationCountry = searchParams.get('country');
+    if (destinationCountry) {
+      setFormData((current) => ({ ...current, country: destinationCountry }));
+    }
+  }, [searchParams]);
 
   const phone = settings?.phone || COMPANY_INFO?.contact?.phone || '+91-94140 68933';
   const whatsapp = settings?.whatsapp || COMPANY_INFO?.contact?.whatsapp || '919414068933';
@@ -205,7 +213,7 @@ export default function ContactPage() {
             </div>
 
             {/* Right Column: Comprehensive RFQ Form */}
-            <div className="lg:col-span-7">
+            <div className="lg:col-span-7" id="rfq">
               <div className="bg-white p-8 sm:p-10 rounded-3xl border border-slate-200 shadow-xl">
 
                 <span className="text-xs font-bold uppercase tracking-widest text-[#0A4E9B]">

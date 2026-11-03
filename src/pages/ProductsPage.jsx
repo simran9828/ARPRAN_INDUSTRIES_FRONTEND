@@ -9,6 +9,7 @@ import { COMPANY_INFO } from '../data/stoneData';
 import SEO from '../components/SEO';
 import { useCMS } from '../context/CMSContext';
 import { getServiceSlugForCatalogCategory } from '../utils/seoRouting';
+import { getImageUrl } from '../utils/imageUrl';
 
 const COLOR_SHADES = [
   { id: 'all', label: 'All Shades', dot: 'bg-gradient-to-r from-slate-400 to-slate-700' },
@@ -302,10 +303,11 @@ export default function ProductsPage({ onOpenProduct }) {
                     className="relative aspect-16/10 overflow-hidden bg-slate-100 cursor-pointer"
                   >
                     <img
-                      src={`${stone.image}?v=4`}
+                      src={getImageUrl(stone.image)}
                       alt={stone.name}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-108"
                       loading="lazy"
+                      decoding="async"
                       onError={(e) => { e.target.src = '/logo.png'; }}
                     />
 

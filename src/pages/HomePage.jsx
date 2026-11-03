@@ -9,6 +9,7 @@ import { COMPANY_INFO } from '../data/stoneData';
 import CATALOG_DATA from '../data/catalog.json';
 import SEO from '../components/SEO';
 import { useCMS } from '../context/CMSContext';
+import { getImageUrl } from '../utils/imageUrl';
 
 // Bright Luxury Architectural Slides for Hero Section
 const HERO_SLIDES = [
@@ -64,7 +65,7 @@ export default function HomePage({ onOpenProduct, onOpenBlog }) {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentHeroSlide((prev) => (prev + 1) % activeSlides.length);
-    }, 4200);
+    }, 6000);
     return () => clearInterval(interval);
   }, [activeSlides.length]);
 
@@ -204,32 +205,21 @@ export default function HomePage({ onOpenProduct, onOpenBlog }) {
 
         {/* Background Auto-Slider - 100% Full-Bleed Ultra-HD Photographic Carousel */}
         <div className="absolute inset-0 z-0 overflow-hidden">
-          {activeSlides.map((slide, index) => {
-            const isActive = index === currentHeroSlide;
-
-            return (
-              <div
-                key={slide.id || index}
-                className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${isActive
-                    ? 'opacity-100 pointer-events-auto'
-                    : 'opacity-0 pointer-events-none'
-                  }`}
-              >
-                <img
-                  src={slide.image}
-                  alt={slide.tag || slide.title || "Arpran Luxury Natural Stone"}
-                  className="w-full h-full object-cover object-center"
-                  loading={index === 0 ? "eager" : "lazy"}
-                  decoding="async"
-                />
-                <Link
-                  to={slide.button_link || "/products"}
-                  className="absolute inset-0 z-10 cursor-pointer"
-                  aria-label={slide.title || "Explore Natural Stones"}
-                />
-              </div>
-            );
-          })}
+          <div key={currentSlide.id || currentHeroSlide} className="absolute inset-0">
+            <img
+              src={getImageUrl(currentSlide.image)}
+              alt={currentSlide.tag || currentSlide.title || "Arpran Luxury Natural Stone"}
+              className="w-full h-full object-cover object-center"
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+            />
+            <Link
+              to={currentSlide.button_link || "/products"}
+              className="absolute inset-0 z-10 cursor-pointer"
+              aria-label={currentSlide.title || "Explore Natural Stones"}
+            />
+          </div>
         </div>
 
         {/* Carousel Navigation - Previous Arrow */}
@@ -255,7 +245,7 @@ export default function HomePage({ onOpenProduct, onOpenBlog }) {
       </section>
 
       {/* 2. ABOUT US PREVIEW SECTION: Ultra-Luxury Architectural Heritage Showcase */}
-      <section className="py-12 sm:py-16 bg-gradient-to-b from-[#F5F2EB] via-[#FAF7F0] to-[#EFEAE0] border-y border-[#E2D8C3] relative overflow-hidden">
+      <section id="about" className="py-12 sm:py-16 bg-gradient-to-b from-[#F5F2EB] via-[#FAF7F0] to-[#EFEAE0] border-y border-[#E2D8C3] relative overflow-hidden">
 
         {/* Subtle Ambient Architectural Lighting Background Accents */}
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-amber-200/30 rounded-full blur-3xl pointer-events-none" />
@@ -509,10 +499,11 @@ export default function HomePage({ onOpenProduct, onOpenBlog }) {
                     {/* Fixed, Calibrated Image Container (100% Uniform Height & Alignment) */}
                     <div className="h-56 sm:h-60 w-full relative overflow-hidden bg-slate-900 shrink-0">
                       <img
-                        src={`${config.image}?v=4`}
+                        src={getImageUrl(config.image)}
                         alt={`${catName} - ARPRAN Industries`}
                         className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                         loading="lazy"
+                        decoding="async"
                       />
                     </div>
 
@@ -584,10 +575,11 @@ export default function HomePage({ onOpenProduct, onOpenBlog }) {
                 <div>
                   <div className="h-52 w-full overflow-hidden bg-slate-100 relative">
                     <img
-                      src={finish.image}
+                      src={getImageUrl(finish.image)}
                       alt={finish.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
+                      decoding="async"
                     />
                     {finish.tag && (
                       <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-slate-900/80 backdrop-blur-md text-white text-[11px] font-semibold uppercase tracking-wider shadow-sm">
@@ -808,9 +800,11 @@ export default function HomePage({ onOpenProduct, onOpenBlog }) {
                           <div key={sidx} className="rounded-xl overflow-hidden border border-stone-200/80 bg-white group/swatch shadow-2xs hover:shadow-md transition-shadow">
                             <div className="h-24 w-full overflow-hidden relative">
                               <img
-                                src={swatch.image}
+                                src={getImageUrl(swatch.image)}
                                 alt={swatch.name}
                                 className="w-full h-full object-cover group/swatch:scale-110 transition-transform duration-500"
+                                loading="lazy"
+                                decoding="async"
                               />
                               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
                               <span className="absolute bottom-1.5 left-2 px-2 py-0.5 rounded-full bg-slate-900/80 text-[10px] font-bold text-white uppercase tracking-wider">
@@ -876,10 +870,11 @@ export default function HomePage({ onOpenProduct, onOpenBlog }) {
                 <div>
                   <div className="h-52 w-full overflow-hidden bg-slate-200 relative">
                     <img
-                      src={b.image}
+                      src={getImageUrl(b.image)}
                       alt={b.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
+                      decoding="async"
                     />
                     <span className="absolute top-3 left-3 px-3 py-1 rounded-full bg-slate-900/80 backdrop-blur-md text-white text-[11px] font-semibold uppercase tracking-wider shadow-sm">
                       {b.category || "Architecture"}

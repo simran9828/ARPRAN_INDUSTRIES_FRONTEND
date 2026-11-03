@@ -33,20 +33,27 @@ export function resolveUnmatchedRoute(pathname = '', redirects = []) {
   const matchedRedirect = redirects.find((redirect) =>
     typeof redirect.source_path === 'string' &&
     redirect.source_path.toLowerCase() === String(pathname).toLowerCase() &&
-    typeof redirect.target_url === 'string' && redirect.target_url
+    isSafeRedirectTarget(redirect.target_url)
   );
 
   if (matchedRedirect) {
     return {
       type: 'cms-redirect',
       targetUrl: matchedRedirect.target_url,
-      external: matchedRedirect.target_url.startsWith('http')
+      external: /^https?:\/\//i.test(matchedRedirect.target_url)
     };
   }
 
   const serviceSlug = resolveLegacyProductServiceSlug(pathname);
   if (serviceSlug) return { type: 'legacy-service', serviceSlug };
   return { type: 'not-found' };
+}
+
+function isSafeRedirectTarget(targetUrl) {
+  if (typeof targetUrl !== 'string' || !targetUrl.trim()) return false;
+  const target = targetUrl.trim();
+  if (target.startsWith('/') && !target.startsWith('//')) return true;
+  return /^https?:\/\//i.test(target);
 }
 
 export function getServiceSlugForCatalogCategory(category, cmsServices = {}) {
