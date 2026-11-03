@@ -1,0 +1,47 @@
+Options -MultiViews
+DirectoryIndex index.html
+RewriteEngine On
+
+# Use one HTTPS, non-www origin for every request.
+RewriteCond %{HTTPS} !=on [OR]
+RewriteCond %{HTTP_HOST} ^www\.arpranindustries\.com$ [NC]
+RewriteRule ^ https://arpranindustries.com%{REQUEST_URI} [R=301,L,NE]
+
+# Permanently removed spam URL reported in Google Search Console.
+RewriteCond %{QUERY_STRING} ^jp/240039158\.html$ [NC]
+RewriteRule ^ - [G,L]
+
+# Search spam URLs are not part of the stone catalog or application routes.
+# Return 410 so crawlers can drop these permanently removed URLs.
+RewriteRule ^(?:m[0-9]{8,}|jp/[0-9]+\.html)/?$ - [G,L,NC]
+
+# Permanently move known public legacy stone URLs to their current category URLs.
+RewriteRule ^granite-stone/?$ /products/granite-series [R=301,L,NC]
+RewriteRule ^marble-exporter-from-india/?$ /products/marble-series [R=301,L,NC]
+RewriteRule ^quartzite-stone-exporters-in-india/?$ /products/quartzite-series [R=301,L,NC]
+RewriteRule ^sandstone-exporter-manufactures-from-india/?$ /products/sandstone-series [R=301,L,NC]
+RewriteRule ^limestone-exporters-in-india/?$ /products/limestone-series [R=301,L,NC]
+RewriteRule ^slate-stone-exporters-from-india/?$ /products/slate-stone [R=301,L,NC]
+RewriteRule ^natural-stone-veneer-sheets/?$ /products/stone-veneer [R=301,L,NC]
+RewriteRule ^granite-rough-blocks-manufacturer-india/?$ /products/rough-blocks [R=301,L,NC]
+RewriteRule ^(?:pebbles-stone-manufacturers-india|natural-stone-paving-exporters|cobbles-stone|stepping-stone-exporters-from-india|stone-articles-furnitures)/?$ /products/landscaping-and-furniture [R=301,L,NC]
+RewriteRule ^services/?$ /products [R=301,L,NC]
+RewriteRule ^services/(granite-series|rough-blocks|quartzite-series|sandstone-series|slate-stone|stone-veneer|limestone-series|marble-series|landscaping-and-furniture)/?$ /products/$1 [R=301,L,NC]
+RewriteRule ^finishes/?$ /products [R=301,L,NC]
+
+# Normalize trailing slashes on non-file URLs.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.+)/$ https://arpranindustries.com/$1 [R=301,L,NE]
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+</IfModule>
+
+# Serve the Vite single-page application for client-side routes.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [L]
