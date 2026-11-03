@@ -120,8 +120,6 @@ export default function SEO({
       breadcrumbScript?.remove();
     }
 
-    // Scroll to top upon page navigation
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [title, description, keywords, canonicalPath, ogType, ogImage, alternateLanguages, seoSettings, settings]);
 
   return null;
