@@ -3,6 +3,8 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/arpranindustries/public_html/
     - /bin/test -f release/index.html
-    - /bin/mkdir -p $DEPLOYPATH
-    - /bin/cp -R release/. $DEPLOYPATH
-    - /bin/cp -p /home/arpranindustries/htaccess-backup $DEPLOYPATH.htaccess
+    - /bin/test -d release/assets
+    - /bin/mkdir -p "$DEPLOYPATH/assets"
+    - /bin/cp -R release/assets/. "$DEPLOYPATH/assets/"
+    - /bin/find release -maxdepth 1 -type f ! -name '.htaccess' -exec /bin/cp -t "$DEPLOYPATH" {} +
+    - /bin/test -f "$DEPLOYPATH/index.html"
