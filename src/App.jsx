@@ -120,7 +120,7 @@ function AppContent() {
 
       {/* Routes */}
       <main className="flex-1">
-        <Suspense fallback={<div className="min-h-[50vh]" aria-label="Loading page" />}>
+        <Suspense fallback={<div className="flex min-h-[50vh] items-center justify-center" role="status" aria-label="Loading page"><span className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-[#0A4E9B]" /><span className="sr-only">Loading page…</span></div>}>
         <Routes>
           {/* Public Website Routes */}
           <Route
