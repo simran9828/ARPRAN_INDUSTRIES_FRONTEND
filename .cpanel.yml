@@ -5,3 +5,4 @@ deployment:
     - /bin/test -f release/index.html
     - /bin/mkdir -p $DEPLOYPATH
     - /bin/cp -R release/. $DEPLOYPATH
+    - /bin/cp -p /home/arpranindustries/htaccess-backup $DEPLOYPATH.htaccess
