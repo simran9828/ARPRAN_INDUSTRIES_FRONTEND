@@ -1,5 +1,7 @@
+---
 deployment:
   tasks:
     - export DEPLOYPATH=/home/arpranindustries/public_html/
-    - /bin/mkdir -p $DEPLOYPATH/assets
+    - /bin/test -f release/index.html
+    - /bin/mkdir -p $DEPLOYPATH
     - /bin/cp -R release/. $DEPLOYPATH
